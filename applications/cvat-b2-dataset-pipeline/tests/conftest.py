@@ -1,5 +1,6 @@
 import boto3
 import pytest
+from botocore.config import Config as BotoConfig
 from moto import mock_aws
 
 from cvat_b2_pipeline import cli, storage
@@ -19,7 +20,9 @@ def cfg():
 def s3(cfg, monkeypatch):
     """moto covers S3 data operations only; key scoping, Object Lock and lifecycle need live B2."""
     with mock_aws():
-        client = boto3.client("s3", region_name="us-east-1")
+        # Pin SigV4 like make_client; the SDK default varies by environment (CI signs with SigV2).
+        client = boto3.client("s3", region_name="us-east-1",
+                              config=BotoConfig(signature_version="s3v4"))
         client.create_bucket(Bucket=BUCKET)
         monkeypatch.setattr(storage, "make_client", lambda _cfg: client)
         yield client

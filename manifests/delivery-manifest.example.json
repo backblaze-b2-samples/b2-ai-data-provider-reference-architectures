@@ -1,0 +1,17 @@
+{
+  "schema_version": "2.0.0",
+  "release_id": "synthetic-toy@v1",
+  "dataset": "synthetic-toy",
+  "version": "v1",
+  "issued_at": "2026-09-29T12:00:00Z",
+  "expires_at": "2026-09-29T13:00:00Z",
+  "expires_in_seconds": 3600,
+  "access": {
+    "method": "GET",
+    "credential_type": "presigned-url"
+  },
+  "urls": {
+    "manifest.json": "https://s3.example.invalid/example-bucket/releases/synthetic-toy/v1/manifest.json?X-Amz-Signature=redacted",
+    "annotations/instances.json": "https://s3.example.invalid/example-bucket/releases/synthetic-toy/v1/annotations/instances.json?X-Amz-Signature=redacted"
+  }
+}

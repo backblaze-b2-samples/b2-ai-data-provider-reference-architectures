@@ -1,0 +1,3 @@
+boto3>=1.36
+Pillow>=10
+python-dotenv>=1.0

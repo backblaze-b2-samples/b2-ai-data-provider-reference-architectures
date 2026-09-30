@@ -1,0 +1,92 @@
+{
+ "annotation_format": "COCO 1.0",
+ "dataset": "synthetic-toy",
+ "files": [
+  {
+   "encoding_format": "image/png",
+   "path": "images/img_0001.png",
+   "sha256": "5becdf99f79eefb0a81f66e082f466636cbc0cf19914a44e80e81924d1bec9dd",
+   "size": 996
+  },
+  {
+   "encoding_format": "image/png",
+   "path": "images/img_0002.png",
+   "sha256": "65c72ce98380aeacbbe5426e1d900c611ffeadf69cb0a6825365272379156bba",
+   "size": 833
+  },
+  {
+   "encoding_format": "image/png",
+   "path": "images/img_0003.png",
+   "sha256": "2c64e2657ea5ff5dcaf7fd6478a2e249cc8c4e79258e0d7ad99db05cf7ed91ff",
+   "size": 1059
+  },
+  {
+   "encoding_format": "image/png",
+   "path": "images/img_0004.png",
+   "sha256": "93e2dd316e5faaf029d7cc927dfd1e84ed6002de0abf08691fee7d29e7d71e05",
+   "size": 1313
+  },
+  {
+   "encoding_format": "image/png",
+   "path": "images/img_0005.png",
+   "sha256": "e24c80d0f347214929fcfa470e812545af4327b21090e66739929800824c16c4",
+   "size": 1046
+  },
+  {
+   "encoding_format": "image/png",
+   "path": "images/img_0006.png",
+   "sha256": "f0612f7a7d79446b22dd316107ae6f6b9dc480e8b53459204182e78afa563a7a",
+   "size": 1209
+  },
+  {
+   "encoding_format": "application/json",
+   "path": "annotations/instances.json",
+   "sha256": "a7de083b921dda1b959070637381bea1fa89f802c56280f7c8e4f46ab478775e",
+   "size": 2573
+  },
+  {
+   "encoding_format": "text/markdown",
+   "path": "README.md",
+   "sha256": "1211ff032deb35a504742a5ff4692f7e2484812fd62255eb390061585ce81526",
+   "size": 1524
+  },
+  {
+   "encoding_format": "application/json",
+   "path": "croissant.json",
+   "sha256": "47eab034f43639cdc0c306acdb746841ba514b2d709772fe99380569d1d7ac4f",
+   "size": 2968
+  }
+ ],
+ "fingerprint": "777fb9817f095493388debea555875dc174e0f1ac5bf22b2ad340c41f83be7b2",
+ "id": "synthetic-toy@v1",
+ "integrity": {
+  "algorithm": "sha256",
+  "content_fingerprint": "777fb9817f095493388debea555875dc174e0f1ac5bf22b2ad340c41f83be7b2"
+ },
+ "license": "MIT",
+ "modalities": [
+  "image"
+ ],
+ "provenance": {
+  "generated_by": "cvat-b2-dataset-pipeline",
+  "inputs": [],
+  "source_type": "synthetic"
+ },
+ "quality": {
+  "checks": [
+   "annotation-structure",
+   "category-references",
+   "bounding-boxes",
+   "image-annotation-coverage",
+   "sha256"
+  ],
+  "status": "passed",
+  "validator": "cvat_b2_pipeline.validate"
+ },
+ "schema_version": "2.0.0",
+ "statistics": {
+  "file_count": 9,
+  "total_bytes": 13521
+ },
+ "version": "v1"
+}

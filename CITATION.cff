@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: "If you use these reference architectures, please cite this repository."
+type: software
+title: "B2 Reference Architectures for AI Data Providers"
+authors:
+  - name: "Backblaze, Inc."
+version: 0.1.0
+date-released: 2026-09-29
+license: MIT
+url: "https://www.backblaze.com/docs/cloud-storage-ai-machine-learning"
+keywords:
+  - ai-datasets
+  - data-annotation
+  - dataset-delivery
+  - reference-architecture
+  - backblaze-b2

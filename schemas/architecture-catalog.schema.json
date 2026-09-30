@@ -1,0 +1,110 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:backblaze:b2-ai-data-provider-reference-architectures:architecture-catalog:1",
+  "title": "B2 AI data provider architecture catalog",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "updated", "canonical_documentation", "architectures"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "updated": {"type": "string", "format": "date"},
+    "canonical_documentation": {"type": "string", "format": "uri"},
+    "architectures": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/architecture"}
+    }
+  },
+  "$defs": {
+    "nonEmptyString": {"type": "string", "minLength": 1},
+    "stringList": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/nonEmptyString"},
+      "uniqueItems": true
+    },
+    "link": {
+      "type": ["string", "null"],
+      "minLength": 1
+    },
+    "integration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "role", "connection", "url", "evidence"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^[a-z0-9-]+$"},
+        "name": {"$ref": "#/$defs/nonEmptyString"},
+        "role": {"$ref": "#/$defs/nonEmptyString"},
+        "connection": {"$ref": "#/$defs/nonEmptyString"},
+        "url": {"type": "string", "format": "uri"},
+        "evidence": {"$ref": "#/$defs/nonEmptyString"}
+      }
+    },
+    "architecture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id", "name", "slug", "summary", "audience", "problem", "workflow",
+        "capabilities", "integrations", "prerequisites", "expected_scale",
+        "validation", "security_considerations", "compliance_considerations", "links"
+      ],
+      "properties": {
+        "id": {"type": "string", "pattern": "^[a-z0-9-]+$"},
+        "name": {"$ref": "#/$defs/nonEmptyString"},
+        "slug": {"type": "string", "pattern": "^[a-z0-9-]+$"},
+        "summary": {"$ref": "#/$defs/nonEmptyString"},
+        "audience": {"$ref": "#/$defs/stringList"},
+        "problem": {"$ref": "#/$defs/nonEmptyString"},
+        "workflow": {"$ref": "#/$defs/stringList"},
+        "capabilities": {"$ref": "#/$defs/stringList"},
+        "integrations": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/integration"}
+        },
+        "prerequisites": {"$ref": "#/$defs/stringList"},
+        "expected_scale": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["profile", "notes"],
+          "properties": {
+            "profile": {"$ref": "#/$defs/nonEmptyString"},
+            "notes": {"$ref": "#/$defs/nonEmptyString"}
+          }
+        },
+        "validation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "date", "methods", "evidence"],
+          "properties": {
+            "status": {
+              "enum": [
+                "documentation-reviewed",
+                "source-reviewed",
+                "source-reviewed-and-automated-tests",
+                "end-to-end-environment-tested"
+              ]
+            },
+            "date": {"type": "string", "format": "date"},
+            "methods": {"$ref": "#/$defs/stringList"},
+            "evidence": {"$ref": "#/$defs/stringList"}
+          }
+        },
+        "security_considerations": {"$ref": "#/$defs/stringList"},
+        "compliance_considerations": {"$ref": "#/$defs/stringList"},
+        "links": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["architecture", "application", "deployment", "sample_data", "release_contract"],
+          "properties": {
+            "architecture": {"$ref": "#/$defs/link"},
+            "application": {"$ref": "#/$defs/link"},
+            "deployment": {"$ref": "#/$defs/link"},
+            "sample_data": {"$ref": "#/$defs/link"},
+            "release_contract": {"$ref": "#/$defs/link"}
+          }
+        }
+      }
+    }
+  }
+}

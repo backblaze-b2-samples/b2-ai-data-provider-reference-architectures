@@ -1,0 +1,25 @@
+name: ci
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - name: Catalog, generated indexes and dataset contracts
+        run: |
+          pip install -r requirements-catalog.txt
+          python tools/generate_catalog.py --check
+          python tools/validate_contracts.py
+          python tools/check_markdown_links.py
+      - name: Sample application
+        working-directory: applications/cvat-b2-dataset-pipeline
+        run: |
+          pip install -r requirements-dev.txt -e .
+          python -m pytest
+      - name: CVAT attach script
+        working-directory: infrastructure/cvat
+        run: pip install pytest && python -m pytest
+      - name: Example configs are valid JSON
+        run: for f in examples/*.json manifests/*.json schemas/*.json testdata/*/croissant.json codemeta.json; do python -m json.tool "$f" >/dev/null; done

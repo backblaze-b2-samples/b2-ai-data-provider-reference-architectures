@@ -1,0 +1,15 @@
+{
+  "asReplicationSource": {
+    "sourceApplicationKeyId": "<source-key-id>",
+    "replicationRules": [
+      {
+        "replicationRuleName": "releases-to-dr",
+        "destinationBucketId": "<dr-bucket-id>",
+        "fileNamePrefix": "releases/",
+        "includeExistingFiles": false,
+        "isEnabled": true,
+        "priority": 1
+      }
+    ]
+  }
+}

@@ -1,0 +1,405 @@
+schema_version: 1.0.0
+updated: "2026-09-29"
+canonical_documentation: https://www.backblaze.com/docs/cloud-storage-ai-machine-learning
+architectures:
+  - id: cvat-annotation-pipeline
+    name: CVAT annotation pipeline on Backblaze B2
+    slug: cvat-annotation-pipeline
+    summary: Collect images, annotate in CVAT, validate COCO exports, publish immutable dataset versions, and deliver them directly from B2.
+    audience:
+      - AI data provider platform engineers
+      - Computer vision data operations teams
+      - Security and storage architects
+    problem: Keep large source media and customer-ready dataset releases durable and independently scalable while CVAT retains transactional annotation state on block storage.
+    workflow:
+      - Collect raw media into a source bucket
+      - Attach B2 to CVAT through its Amazon S3 provider and custom endpoint
+      - Export annotations into a work bucket
+      - Validate schema, label bounds, coverage, and checksums
+      - Publish an immutable version and write its release manifest last
+      - Deliver with short-lived presigned URLs and trigger downstream refresh
+    capabilities:
+      - S3-compatible API
+      - Scoped application keys
+      - Multipart upload
+      - Presigned URLs and CORS
+      - Event notifications
+      - Object versions and lifecycle rules
+      - SSE-B2 and Object Lock
+      - Cloud Replication for disaster recovery
+    integrations:
+      - id: cvat
+        name: CVAT
+        role: Image and video annotation, review, and dataset export
+        connection: Amazon S3 cloud storage with a Backblaze B2 endpoint URL
+        url: https://docs.cvat.ai/docs/workspace/attach-cloud-storage/
+        evidence: CVAT documentation and S3 client source reviewed 2026-09-29
+    prerequisites:
+      - A private B2 bucket for each lifecycle zone, or one sample bucket with separate prefixes
+      - Prefix-scoped B2 application keys for each runtime role
+      - A CVAT deployment with its database, queues, and caches on block storage
+      - Compute for validation and delivery signing
+    expected_scale:
+      profile: Large image and video collections with many sequential object reads and writes
+      notes: Standard B2 is the default; measure sustained multi-GPU or parallel refresh throughput before considering Overdrive or a compute-local cache.
+    validation:
+      status: source-reviewed-and-automated-tests
+      date: "2026-09-29"
+      methods:
+        - CVAT documentation and source review
+        - B2 documentation and CLI shape review
+        - Moto-backed S3 application tests
+      evidence:
+        - applications/cvat-b2-dataset-pipeline/tests
+        - infrastructure/cvat/test_attach_cloud_storage.py
+        - architectures/cvat-annotation-pipeline/architecture.md
+    security_considerations:
+      - Use separate prefix-scoped keys for ingest, annotation reads, exports, publishing, and delivery signing
+      - Treat presigned URLs and delivery manifests as bearer credentials
+      - Keep administrative keys out of runtime services
+      - Use governance-mode Object Lock by default and choose compliance mode only for a contractual requirement
+    compliance_considerations:
+      - Set retention periods from customer contracts and deletion obligations
+      - Preserve release provenance and per-file SHA-256 checksums
+      - Keep personal or sensitive data classifications in the dataset card and Croissant RAI metadata
+    links:
+      architecture: architectures/cvat-annotation-pipeline/architecture.md
+      application: applications/cvat-b2-dataset-pipeline/README.md
+      deployment: infrastructure/cvat/README.md
+      sample_data: testdata/synthetic-toy/README.md
+      release_contract: docs/dataset-release-contract.md
+
+  - id: label-studio-annotation-pipeline
+    name: Label Studio annotation pipeline on Backblaze B2
+    slug: label-studio-annotation-pipeline
+    summary: Sync source objects into Label Studio, write completed annotations to target storage, validate them, and publish customer-ready dataset versions on B2.
+    audience:
+      - AI data provider platform engineers
+      - Multimodal annotation operations teams
+      - Security and storage architects
+    problem: Give Label Studio controlled access to large image, audio, video, text, or task files without using object storage for its transactional application state.
+    workflow:
+      - Upload source media or task definitions into a raw-data prefix
+      - Connect a Label Studio S3 source storage using the B2 endpoint
+      - Serve media through presigned URLs or the Label Studio storage proxy
+      - Connect a separate S3 target storage for completed annotations
+      - Validate exported tasks and media references
+      - Publish immutable releases with the shared release contract
+      - Deliver customer-specific, short-lived download URLs
+    capabilities:
+      - S3-compatible API with a custom endpoint
+      - Prefix-scoped application keys
+      - Presigned URLs or application-proxied media
+      - CORS for direct browser reads
+      - Object versions and lifecycle rules
+      - SSE-B2 and Object Lock
+      - Event notifications for downstream validation
+    integrations:
+      - id: label-studio
+        name: Label Studio
+        role: Multimodal task import, annotation, review, and annotation export
+        connection: Amazon S3 source and target storage with the Backblaze B2 S3 endpoint
+        url: https://labelstud.io/guide/storage_s3
+        evidence: Label Studio storage documentation and S3 client source reviewed 2026-09-29
+    prerequisites:
+      - Private B2 raw, work, and release buckets or equivalent prefixes
+      - Separate source-reader and target-writer application keys
+      - A Label Studio deployment with its application database and uploaded-data state outside B2 dataset buckets
+      - Correct CORS when browsers use presigned URLs; otherwise use the Label Studio storage proxy
+    expected_scale:
+      profile: Multimodal annotation projects whose source media is larger than the Label Studio application filesystem
+      notes: Presigned delivery keeps media traffic off Label Studio workers; proxy mode trades simpler browser access for higher application bandwidth and worker load.
+    validation:
+      status: source-reviewed
+      date: "2026-09-29"
+      methods:
+        - Label Studio source and target storage documentation review
+        - Label Studio boto3 custom-endpoint source review
+        - B2 S3 compatibility and key capability review
+      evidence:
+        - https://labelstud.io/guide/storage
+        - https://labelstud.io/guide/storage_s3
+        - architectures/label-studio-annotation-pipeline/architecture.md
+    security_considerations:
+      - Use separate source-reader and target-writer keys with the narrowest bucket prefix
+      - Do not enable target deletion unless the workflow requires it
+      - Restrict who can configure custom storage endpoints in Label Studio
+      - Treat presigned URLs as temporary bearer credentials and configure CORS to the Label Studio origin
+    compliance_considerations:
+      - Select presigned or proxy delivery according to network-boundary requirements
+      - Record collection rights, consent, sensitive-data classes, and annotation provenance with each release
+      - Align lifecycle and Object Lock retention with deletion and contractual obligations
+    links:
+      architecture: architectures/label-studio-annotation-pipeline/architecture.md
+      application: null
+      deployment: https://labelstud.io/guide/storage_s3
+      sample_data: testdata/synthetic-toy/README.md
+      release_contract: docs/dataset-release-contract.md
+
+  - id: dataloop-direct-data-pipeline
+    name: Dataloop DDOE direct-data pipeline on Backblaze B2
+    slug: dataloop-direct-data-pipeline
+    summary: Connect Dataloop DDOE to B2 through its generic S3 API integration, process datasets without making the platform the system of record, and publish governed releases back to B2.
+    audience:
+      - AI data provider platform engineers
+      - Enterprise data operations teams
+      - Kubernetes and storage architects
+    problem: Run dataset synchronization, preprocessing, annotation, and AI applications against durable object storage while keeping B2 as the authoritative data and release layer.
+    workflow:
+      - Ingest source objects and a stable inventory into a B2 raw-data prefix
+      - Configure a DDOE S3 API integration with the regional B2 endpoint
+      - Attach the storage integration to a compute cluster and synchronize a dataset
+      - Run preprocessing, annotation, enrichment, or AI applications in DDOE
+      - Export approved outputs and quality reports into a B2 work prefix
+      - Validate and publish an immutable release with its manifest written last
+      - Deliver the release through short-lived presigned URLs
+    capabilities:
+      - S3-compatible API with a configurable endpoint URL
+      - Direct data access without mandatory source-object duplication
+      - Prefix-scoped application keys
+      - Object versions and lifecycle rules
+      - Event notifications for validation and downstream refresh
+      - SSE-B2 and Object Lock for governed releases
+      - Presigned customer delivery
+    integrations:
+      - id: dataloop-ddoe
+        name: Dataloop DDOE
+        role: Dataset synchronization, preprocessing, annotation, applications, pipelines, and AI workloads
+        connection: Generic S3 API storage integration configured with the regional Backblaze B2 endpoint; B2-specific acceptance testing is required
+        url: https://docs.dataloop.ai/docs/s3-api
+        evidence: Dataloop DDOE S3 API and storage-integration documentation reviewed 2026-09-29
+    prerequisites:
+      - A DDOE deployment with an organization administrator and an attached compute cluster
+      - Private B2 raw, work, and release buckets or equivalent prefixes
+      - Separate least-privilege keys for source access, work outputs, and release publication
+      - Network egress and DNS from the DDOE streamer and compute services to the regional B2 S3 endpoint
+    expected_scale:
+      profile: Enterprise image, video, document, LiDAR, and multimodal collections processed by Kubernetes-hosted applications and pipelines
+      notes: Keep source objects in B2 and measure synchronization, preview generation, and parallel read patterns with representative object sizes before production rollout.
+    validation:
+      status: documentation-reviewed
+      date: "2026-09-29"
+      methods:
+        - Dataloop DDOE generic S3 API documentation review
+        - Dataloop storage integration and dataset synchronization documentation review
+        - B2 S3 endpoint and application-key capability mapping
+      evidence:
+        - https://docs.dataloop.ai/docs/s3-api
+        - https://docs.dataloop.ai/docs/integrations-overview
+        - architectures/dataloop-direct-data-pipeline/architecture.md
+    security_considerations:
+      - Scope the DDOE source key to only the bucket and prefix synchronized into the platform
+      - Put generated previews, platform metadata, and processing outputs in an explicitly writable prefix rather than granting broad raw-data writes
+      - Keep release publication and Object Lock credentials outside DDOE runtime applications
+      - Restrict who can create storage integrations because endpoint and credential configuration controls server-side data access
+    compliance_considerations:
+      - Decide whether direct-data processing, cached previews, or platform exports create additional regulated copies
+      - Record transformation lineage, application versions, annotator provenance, and quality results in each release
+      - Align DDOE deletion and synchronization behavior with B2 lifecycle, retention, and contractual erasure requirements
+    links:
+      architecture: architectures/dataloop-direct-data-pipeline/architecture.md
+      application: null
+      deployment: https://docs.dataloop.ai/docs/s3-api
+      sample_data: testdata/synthetic-toy/README.md
+      release_contract: docs/dataset-release-contract.md
+
+  - id: supervisely-annotation-pipeline
+    name: Supervisely annotation and dataset pipeline on Backblaze B2
+    slug: supervisely-annotation-pipeline
+    summary: Connect Supervisely to B2 through its configurable S3-compatible storage paths, annotate or transform remote media, and publish immutable dataset releases.
+    audience:
+      - Computer vision data operations teams
+      - AI data provider platform engineers
+      - Enterprise annotation administrators
+    problem: Work with large image and video collections in Supervisely while keeping durable source media, exports, and customer releases in independently governed object storage.
+    workflow:
+      - Collect source images and video into a B2 raw-data prefix
+      - Configure Supervisely remote storage or a team cloud connection with the regional B2 endpoint
+      - Import existing media by reference when the selected Supervisely workflow supports remote links
+      - Annotate, review, transform, or run Supervisely applications
+      - Export approved datasets and reports into a B2 work prefix
+      - Validate and publish an immutable release with its manifest written last
+      - Deliver the release with customer-specific presigned URLs
+    capabilities:
+      - S3-compatible storage with a configurable endpoint
+      - Remote media links and cloud import/export workflows
+      - Multipart upload for large artifacts
+      - Prefix-scoped application keys
+      - Object versions and lifecycle rules
+      - SSE-B2 and Object Lock
+      - Presigned delivery and downstream events
+    integrations:
+      - id: supervisely
+        name: Supervisely
+        role: Image and video annotation, review, transformation, application execution, and dataset import or export
+        connection: S3-compatible remote storage or team cloud storage configured with the regional Backblaze B2 endpoint
+        url: https://docs.supervisely.com/enterprise-edition/advanced-tuning/s3
+        evidence: Supervisely remote-storage and cloud import/export documentation reviewed 2026-09-29
+    prerequisites:
+      - A compatible Supervisely deployment and administrator access for the chosen storage configuration
+      - Private B2 raw, work, and release buckets or explicitly separated prefixes
+      - Separate read and write application keys for linked sources and generated outputs
+      - A decision between instance-wide remote storage, team cloud storage, copying imports, and remote links
+    expected_scale:
+      profile: Large image and video projects with interactive annotation, model-assisted processing, and repeated dataset export
+      notes: Direct links avoid unnecessary source copies, while preview caches and interactive reads still require capacity and latency testing near Supervisely compute.
+    validation:
+      status: documentation-reviewed
+      date: "2026-09-29"
+      methods:
+        - Supervisely S3-compatible remote-storage documentation review
+        - Supervisely cloud import, remote-link, and export documentation review
+        - B2 S3 endpoint, multipart, and application-key capability mapping
+      evidence:
+        - https://docs.supervisely.com/enterprise-edition/advanced-tuning/s3
+        - https://docs.supervisely.com/import-and-export/import/import-from-cloud
+        - architectures/supervisely-annotation-pipeline/architecture.md
+    security_considerations:
+      - Use different credentials for linked source reads and export writes
+      - Restrict remote-storage administration and never expose application keys in project assets or link files
+      - Keep release signing and retention credentials outside Supervisely
+      - Treat exported presigned URLs and delivery manifests as bearer credentials
+    compliance_considerations:
+      - Document whether imports are linked, copied, cached, or exported because each mode changes data location and deletion duties
+      - Capture annotation, model, application, and reviewer provenance in the release metadata
+      - Align preview caches, project deletion, B2 lifecycle, and Object Lock retention with customer commitments
+    links:
+      architecture: architectures/supervisely-annotation-pipeline/architecture.md
+      application: null
+      deployment: https://docs.supervisely.com/enterprise-edition/advanced-tuning/s3
+      sample_data: testdata/synthetic-toy/README.md
+      release_contract: docs/dataset-release-contract.md
+
+  - id: fiftyone-dataset-curation-pipeline
+    name: FiftyOne dataset curation and quality pipeline on Backblaze B2
+    slug: fiftyone-dataset-curation-pipeline
+    summary: Reference B2-backed media from FiftyOne Enterprise, curate and evaluate datasets on compute, and publish selected samples, labels, and quality evidence as immutable releases.
+    audience:
+      - Machine learning data quality teams
+      - Computer vision and multimodal engineers
+      - AI data provider platform architects
+    problem: Inspect, search, deduplicate, evaluate, and select large datasets without turning the curation platform database into the durable release system of record.
+    workflow:
+      - Store source media and a stable inventory in a B2 raw-data prefix
+      - Configure a custom-endpoint cloud credential path in FiftyOne Enterprise and test it against B2
+      - Create a FiftyOne dataset whose sample filepaths resolve to B2-backed media
+      - Compute embeddings, similarity, quality, duplicate, and evaluation views on external compute
+      - Export selected samples, labels, reports, and provenance into a B2 work prefix
+      - Validate and publish an immutable curated release with its manifest written last
+      - Deliver releases through presigned URLs or downstream compute access
+    capabilities:
+      - Cloud-backed media references
+      - Custom endpoint configuration through the MinIO-compatible credential path
+      - Managed bucket-scoped cloud credentials
+      - Prefix-scoped B2 application keys
+      - Immutable versioned release objects
+      - SSE-B2, Object Lock, and lifecycle policies
+      - Presigned delivery and compute-local caching
+    integrations:
+      - id: fiftyone-enterprise
+        name: FiftyOne Enterprise
+        role: Dataset visualization, search, curation, embeddings, duplicate analysis, model evaluation, and selection
+        connection: Candidate custom-endpoint connection through FiftyOne's documented MinIO-compatible cloud-media configuration; validate B2 addressing and media access before adoption
+        url: https://docs.voxel51.com/enterprise/installation.html
+        evidence: FiftyOne Enterprise cloud-media and custom endpoint documentation reviewed 2026-09-29
+    prerequisites:
+      - A FiftyOne Enterprise deployment with cloud-media support
+      - Private B2 raw, work, and release buckets or equivalent prefixes
+      - Read-only source credentials plus separate output and publisher credentials
+      - Compute and database storage sized for FiftyOne metadata, embeddings, indexes, and application workloads
+    expected_scale:
+      profile: Large computer-vision and multimodal datasets requiring interactive exploration, embeddings, quality analysis, and curated subset releases
+      notes: Media remains object-backed, but databases, indexes, embeddings, previews, and frequently reused objects may need storage or caching close to FiftyOne compute.
+    validation:
+      status: documentation-reviewed
+      date: "2026-09-29"
+      methods:
+        - FiftyOne Enterprise cloud-backed media documentation review
+        - FiftyOne MinIO-compatible endpoint and managed-credential documentation review
+        - B2 S3 addressing, credential, and object-access requirements analysis
+      evidence:
+        - https://docs.voxel51.com/enterprise/cloud_media.html
+        - https://docs.voxel51.com/enterprise/installation.html
+        - architectures/fiftyone-dataset-curation-pipeline/architecture.md
+    security_considerations:
+      - Use read-only credentials for raw media and separate writers for reports or selected outputs
+      - Scope managed cloud credentials to the smallest possible bucket set and user or group audience
+      - Keep FiftyOne's database, indexes, session state, and secrets off B2 dataset prefixes
+      - Do not store expiring presigned URLs as durable sample identifiers
+    compliance_considerations:
+      - Treat embeddings, similarity indexes, thumbnails, and derived labels as governed dataset derivatives
+      - Preserve selection criteria, model versions, evaluation configurations, and excluded-sample reasons with the release
+      - Apply deletion and retention policy to both B2 objects and cached or indexed derivatives in FiftyOne
+    links:
+      architecture: architectures/fiftyone-dataset-curation-pipeline/architecture.md
+      application: null
+      deployment: https://docs.voxel51.com/enterprise/cloud_media.html
+      sample_data: testdata/synthetic-toy/README.md
+      release_contract: docs/dataset-release-contract.md
+
+  - id: roboflow-presigned-import-pipeline
+    name: Roboflow presigned import and release pipeline with Backblaze B2
+    slug: roboflow-presigned-import-pipeline
+    summary: Select B2 objects, give Roboflow time-limited read URLs for API import, process the copied assets in Roboflow, and return approved exports to governed B2 releases.
+    audience:
+      - Computer vision dataset teams
+      - AI data provider integration engineers
+      - Security and data governance architects
+    problem: Move selected computer-vision assets through a managed processing platform without public buckets, permanent shared credentials, or an unsupported direct-B2 connector claim.
+    workflow:
+      - Store private source images and metadata in a B2 raw-data prefix
+      - Select an import batch from a stable inventory or manifest
+      - Generate short-lived B2 presigned GET URLs with a read-only key
+      - Submit each URL to the Roboflow upload API and record the returned asset identity
+      - Annotate, preprocess, augment, version, or train inside Roboflow
+      - Export approved data and model-independent dataset artifacts back to a B2 work prefix
+      - Validate and publish an immutable release with its manifest written last
+    capabilities:
+      - Short-lived presigned GET URLs
+      - API-mediated import without public B2 buckets
+      - Prefix-scoped source-reader and output-writer keys
+      - Deterministic import inventories and provenance mapping
+      - Object versions and lifecycle policies
+      - SSE-B2 and Object Lock for final releases
+      - Customer delivery from B2
+    integrations:
+      - id: roboflow
+        name: Roboflow
+        role: Computer-vision upload, annotation, preprocessing, augmentation, dataset versioning, training, and export
+        connection: One-time or scripted import through B2 presigned URLs submitted to the Roboflow API; this architecture does not claim B2 support in Roboflow Bucket Mirror
+        url: https://docs.roboflow.com/datasets/create-and-upload/adding-data/upload-data-from-aws-gcp-and-azure/aws-s3-bucket
+        evidence: Roboflow presigned-URL import documentation reviewed 2026-09-29; B2 URL generation is covered by the repository S3 client tests
+    prerequisites:
+      - A private B2 source bucket and a read-only prefix-scoped signing key
+      - A Roboflow workspace, project, and API credential stored outside B2
+      - An import adapter that records B2 object version or checksum to Roboflow asset identity
+      - A separate route for returning exports to B2 and applying the shared release contract
+    expected_scale:
+      profile: Selected computer-vision batches imported into a managed platform for labeling, transformation, dataset versioning, or training
+      notes: Presigned import is best for bounded or scripted transfers; large continuous synchronization should be evaluated separately because Roboflow's documented persistent datasource path is AWS-specific.
+    validation:
+      status: documentation-reviewed
+      date: "2026-09-29"
+      methods:
+        - Roboflow AWS S3 and presigned-URL import documentation review
+        - Roboflow upload API flow review
+        - Repository-tested B2-compatible presigned URL generation pattern review
+      evidence:
+        - https://docs.roboflow.com/datasets/create-and-upload/adding-data/upload-data-from-aws-gcp-and-azure/aws-s3-bucket
+        - applications/cvat-b2-dataset-pipeline/tests/test_storage.py
+        - architectures/roboflow-presigned-import-pipeline/architecture.md
+    security_considerations:
+      - Generate URLs from a read-only key scoped to the selected source prefix and keep expiry only as long as the import queue requires
+      - Treat Roboflow as a separate data processor because imported objects are copied across the trust boundary
+      - Store the Roboflow API credential in a secret manager and never embed it in URLs, manifests, or B2 object metadata
+      - Use separate credentials and validation for exports returning to B2
+    compliance_considerations:
+      - Confirm processing location, retention, deletion, subprocessors, and permitted model-training uses before transfer
+      - Record each source checksum, Roboflow asset identifier, transformation configuration, and export checksum
+      - Reconcile deletion requests across B2, Roboflow, exported datasets, and immutable releases subject to retention
+    links:
+      architecture: architectures/roboflow-presigned-import-pipeline/architecture.md
+      application: null
+      deployment: https://docs.roboflow.com/datasets/create-and-upload/adding-data/upload-data-from-aws-gcp-and-azure/aws-s3-bucket
+      sample_data: testdata/synthetic-toy/README.md
+      release_contract: docs/dataset-release-contract.md

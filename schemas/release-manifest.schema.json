@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:backblaze:b2-ai-data-provider-reference-architectures:release-manifest:2",
+  "title": "AI dataset release manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "id", "dataset", "version", "annotation_format", "modalities",
+    "license", "provenance", "quality", "statistics", "integrity", "fingerprint", "files"
+  ],
+  "properties": {
+    "schema_version": {"const": "2.0.0"},
+    "id": {"type": "string", "pattern": "^[a-z0-9._-]+@[a-z0-9._-]+$"},
+    "dataset": {"type": "string", "pattern": "^[a-z0-9._-]+$"},
+    "version": {"type": "string", "pattern": "^[a-z0-9._-]+$"},
+    "annotation_format": {"type": "string", "minLength": 1},
+    "modalities": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"enum": ["image", "video", "audio", "text", "tabular", "multimodal", "other"]}
+    },
+    "license": {"type": "string", "minLength": 1, "description": "SPDX license identifier or LicenseRef value."},
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_type", "generated_by", "inputs"],
+      "properties": {
+        "source_type": {"enum": ["collected", "customer-provided", "synthetic", "derived", "mixed"]},
+        "generated_by": {"type": "string", "minLength": 1},
+        "inputs": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1},
+          "uniqueItems": true
+        }
+      }
+    },
+    "quality": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "validator", "checks"],
+      "properties": {
+        "status": {"enum": ["pending", "passed"]},
+        "validator": {"type": "string", "minLength": 1},
+        "checks": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "statistics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["file_count", "total_bytes"],
+      "properties": {
+        "file_count": {"type": "integer", "minimum": 1},
+        "total_bytes": {"type": "integer", "minimum": 1}
+      }
+    },
+    "integrity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["algorithm", "content_fingerprint"],
+      "properties": {
+        "algorithm": {"const": "sha256"},
+        "content_fingerprint": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+      }
+    },
+    "fingerprint": {"type": "string", "pattern": "^[a-f0-9]{64}$", "description": "Compatibility alias for integrity.content_fingerprint."},
+    "files": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "size", "sha256", "encoding_format"],
+        "properties": {
+          "path": {"type": "string", "pattern": "^((images|annotations)/[^/].*|README\\.md|croissant\\.json)$"},
+          "size": {"type": "integer", "minimum": 1},
+          "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+          "encoding_format": {"type": "string", "minLength": 1}
+        }
+      }
+    }
+  }
+}

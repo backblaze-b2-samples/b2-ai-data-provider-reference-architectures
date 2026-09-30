@@ -1,0 +1,17 @@
+{
+  "bucketId": "<work-bucket-id>",
+  "eventNotificationRules": [
+    {
+      "name": "validate-on-export",
+      "eventTypes": ["b2:ObjectCreated:Upload", "b2:ObjectCreated:MultipartUpload"],
+      "objectNamePrefix": "exports/",
+      "isEnabled": true,
+      "maxEventsPerBatch": 1,
+      "targetConfiguration": {
+        "targetType": "webhook",
+        "url": "https://hooks.example.com/b2/validate",
+        "hmacSha256SigningSecret": "<32-char-alphanumeric-secret>"
+      }
+    }
+  ]
+}

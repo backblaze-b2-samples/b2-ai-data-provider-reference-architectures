@@ -1,0 +1,6 @@
+.env
+out/
+__pycache__/
+*.egg-info/
+.pytest_cache/
+delivery.json

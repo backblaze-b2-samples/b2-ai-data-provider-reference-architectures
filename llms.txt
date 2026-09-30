@@ -1,0 +1,47 @@
+# B2 Reference Architectures for AI Data Providers
+
+> Designs, release contracts, and runnable examples for collecting, annotating, validating, publishing, and delivering AI datasets with Backblaze B2.
+
+Canonical Backblaze product documentation: https://www.backblaze.com/docs/cloud-storage-ai-machine-learning. Repository pages are maintained as clean Markdown; product documentation remains authoritative for changing service behavior. This community-convention file is a navigation aid, not an access-control policy or a search-ranking claim.
+
+## Start here
+
+- [AI data provider summary](docs/ai-data-providers.md): Concise workload and capability overview.
+- [Architecture index](docs/architecture-index.md): Human-readable index generated from the catalog.
+- [Machine-readable catalog](catalog/architectures.yaml): Audiences, workflows, capabilities, evidence, security, compliance, and resource links.
+- [Dataset release contract](docs/dataset-release-contract.md): Operational manifest, dataset card, Croissant metadata, and delivery manifest.
+
+## Architectures
+
+- [CVAT annotation pipeline on Backblaze B2](architectures/cvat-annotation-pipeline/architecture.md): Collect images, annotate in CVAT, validate COCO exports, publish immutable dataset versions, and deliver them directly from B2.
+- [Label Studio annotation pipeline on Backblaze B2](architectures/label-studio-annotation-pipeline/architecture.md): Sync source objects into Label Studio, write completed annotations to target storage, validate them, and publish customer-ready dataset versions on B2.
+- [Dataloop DDOE direct-data pipeline on Backblaze B2](architectures/dataloop-direct-data-pipeline/architecture.md): Connect Dataloop DDOE to B2 through its generic S3 API integration, process datasets without making the platform the system of record, and publish governed releases back to B2.
+- [Supervisely annotation and dataset pipeline on Backblaze B2](architectures/supervisely-annotation-pipeline/architecture.md): Connect Supervisely to B2 through its configurable S3-compatible storage paths, annotate or transform remote media, and publish immutable dataset releases.
+- [FiftyOne dataset curation and quality pipeline on Backblaze B2](architectures/fiftyone-dataset-curation-pipeline/architecture.md): Reference B2-backed media from FiftyOne Enterprise, curate and evaluate datasets on compute, and publish selected samples, labels, and quality evidence as immutable releases.
+- [Roboflow presigned import and release pipeline with Backblaze B2](architectures/roboflow-presigned-import-pipeline/architecture.md): Select B2 objects, give Roboflow time-limited read URLs for API import, process the copied assets in Roboflow, and return approved exports to governed B2 releases.
+
+## Contracts and schemas
+
+- [Architecture catalog schema](schemas/architecture-catalog.schema.json): JSON Schema for catalog/architectures.yaml.
+- [Release manifest schema](schemas/release-manifest.schema.json): Immutable release identity, provenance, quality, statistics, and file integrity.
+- [Delivery manifest schema](schemas/delivery-manifest.schema.json): Expiring customer delivery bundle.
+- [Synthetic dataset card](testdata/synthetic-toy/README.md): Human-readable intended use, limitations, provenance, and license.
+- [Synthetic Croissant metadata](testdata/synthetic-toy/croissant.json): MLCommons-compatible discovery and loading metadata.
+
+## Applications and configuration
+
+- [CVAT B2 dataset pipeline](applications/cvat-b2-dataset-pipeline/README.md): Runnable synthetic release pipeline.
+- [CVAT storage attachment](infrastructure/cvat/README.md): API helper for attaching B2 to CVAT.
+- [B2 configuration examples](examples/README.md): Lifecycle, CORS, encryption, Object Lock, notifications, replication, and keys.
+- [Related B2 sample applications](docs/related-b2-samples.md): Curated collection, annotation, curation, packaging, training, query, upload, and event examples from the Backblaze sample organization.
+
+## Official product documentation
+
+- [Backblaze AI and machine learning](https://www.backblaze.com/docs/cloud-storage-ai-machine-learning): Canonical B2 documentation hub.
+- [Backblaze B2 documentation](https://www.backblaze.com/docs/cloud-storage): Current product behavior and setup.
+- [Backblaze B2 pricing](https://www.backblaze.com/cloud-storage/pricing): Current pricing and egress terms.
+
+## Optional
+
+- [Repository agent guide](AGENTS.md): Source hierarchy, generation commands, and operational invariants.
+- [Portable agent skill](skill/SKILL.md): Self-contained guidance for B2 AI dataset architecture work.

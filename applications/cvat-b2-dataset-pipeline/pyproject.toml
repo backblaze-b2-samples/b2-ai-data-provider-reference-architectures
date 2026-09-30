@@ -1,0 +1,25 @@
+[project]
+name = "cvat-b2-dataset-pipeline"
+version = "0.2.0"
+description = "Synthetic CVAT-style dataset release pipeline on Backblaze B2 with validated manifests"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [{name = "Backblaze, Inc."}]
+keywords = ["ai-datasets", "backblaze-b2", "cvat", "data-annotation", "s3-compatible"]
+requires-python = ">=3.10"
+dependencies = ["boto3>=1.36", "Pillow>=10", "python-dotenv>=1.0"]
+
+[project.urls]
+Documentation = "https://www.backblaze.com/docs/cloud-storage-ai-machine-learning"
+"B2 Documentation" = "https://www.backblaze.com/docs/cloud-storage"
+
+[project.scripts]
+cvat-b2 = "cvat_b2_pipeline.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+markers = ["live: needs real B2 credentials and RUN_B2_LIVE_TESTS=1"]

@@ -1,0 +1,9 @@
+# Deployment template only. Crawlers do not read this file from a Git repository.
+# The owner of the canonical backblaze.com domain controls its deployed robots.txt.
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: *
+Allow: /
+
+Sitemap: https://www.backblaze.com/sitemap.xml

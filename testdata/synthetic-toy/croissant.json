@@ -1,0 +1,93 @@
+{
+  "@context": {
+    "@language": "en",
+    "@vocab": "https://schema.org/",
+    "cr": "http://mlcommons.org/croissant/",
+    "dct": "http://purl.org/dc/terms/",
+    "sc": "https://schema.org/"
+  },
+  "@type": "sc:Dataset",
+  "name": "Synthetic Toy Object Detection Dataset",
+  "description": "6 deterministic synthetic PNG images with COCO 1.0 object-detection annotations for testing a B2 dataset release pipeline.",
+  "dct:conformsTo": "http://mlcommons.org/croissant/1.0",
+  "version": "v1",
+  "license": "https://spdx.org/licenses/MIT.html",
+  "url": "https://www.backblaze.com/docs/cloud-storage-ai-machine-learning",
+  "creator": {
+    "@type": "sc:Organization",
+    "name": "Backblaze, Inc.",
+    "url": "https://www.backblaze.com/"
+  },
+  "datePublished": "2026-09-29",
+  "keywords": [
+    "synthetic",
+    "object detection",
+    "COCO",
+    "Backblaze B2"
+  ],
+  "distribution": [
+    {
+      "@type": "cr:FileObject",
+      "@id": "image-1",
+      "name": "img_0001.png",
+      "contentUrl": "images/img_0001.png",
+      "contentSize": "996 B",
+      "encodingFormat": "image/png",
+      "sha256": "5becdf99f79eefb0a81f66e082f466636cbc0cf19914a44e80e81924d1bec9dd"
+    },
+    {
+      "@type": "cr:FileObject",
+      "@id": "image-2",
+      "name": "img_0002.png",
+      "contentUrl": "images/img_0002.png",
+      "contentSize": "833 B",
+      "encodingFormat": "image/png",
+      "sha256": "65c72ce98380aeacbbe5426e1d900c611ffeadf69cb0a6825365272379156bba"
+    },
+    {
+      "@type": "cr:FileObject",
+      "@id": "image-3",
+      "name": "img_0003.png",
+      "contentUrl": "images/img_0003.png",
+      "contentSize": "1059 B",
+      "encodingFormat": "image/png",
+      "sha256": "2c64e2657ea5ff5dcaf7fd6478a2e249cc8c4e79258e0d7ad99db05cf7ed91ff"
+    },
+    {
+      "@type": "cr:FileObject",
+      "@id": "image-4",
+      "name": "img_0004.png",
+      "contentUrl": "images/img_0004.png",
+      "contentSize": "1313 B",
+      "encodingFormat": "image/png",
+      "sha256": "93e2dd316e5faaf029d7cc927dfd1e84ed6002de0abf08691fee7d29e7d71e05"
+    },
+    {
+      "@type": "cr:FileObject",
+      "@id": "image-5",
+      "name": "img_0005.png",
+      "contentUrl": "images/img_0005.png",
+      "contentSize": "1046 B",
+      "encodingFormat": "image/png",
+      "sha256": "e24c80d0f347214929fcfa470e812545af4327b21090e66739929800824c16c4"
+    },
+    {
+      "@type": "cr:FileObject",
+      "@id": "image-6",
+      "name": "img_0006.png",
+      "contentUrl": "images/img_0006.png",
+      "contentSize": "1209 B",
+      "encodingFormat": "image/png",
+      "sha256": "f0612f7a7d79446b22dd316107ae6f6b9dc480e8b53459204182e78afa563a7a"
+    },
+    {
+      "@type": "cr:FileObject",
+      "@id": "annotations",
+      "name": "instances.json",
+      "contentUrl": "annotations/instances.json",
+      "contentSize": "2573 B",
+      "encodingFormat": "application/json",
+      "sha256": "a7de083b921dda1b959070637381bea1fa89f802c56280f7c8e4f46ab478775e"
+    }
+  ]
+}

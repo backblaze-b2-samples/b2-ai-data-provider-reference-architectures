@@ -1,0 +1,10 @@
+[
+  {
+    "corsRuleName": "customer-portal-presigned-io",
+    "allowedOrigins": ["https://portal.example.com"],
+    "allowedOperations": ["s3_get", "s3_head", "s3_put"],
+    "allowedHeaders": ["*"],
+    "exposeHeaders": ["ETag"],
+    "maxAgeSeconds": 3600
+  }
+]

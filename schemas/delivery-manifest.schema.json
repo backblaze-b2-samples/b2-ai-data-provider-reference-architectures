@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:backblaze:b2-ai-data-provider-reference-architectures:delivery-manifest:2",
+  "title": "AI dataset delivery manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "release_id", "dataset", "version", "issued_at", "expires_at", "expires_in_seconds", "access", "urls"],
+  "properties": {
+    "schema_version": {"const": "2.0.0"},
+    "release_id": {"type": "string", "pattern": "^[a-z0-9._-]+@[a-z0-9._-]+$"},
+    "dataset": {"type": "string", "pattern": "^[a-z0-9._-]+$"},
+    "version": {"type": "string", "pattern": "^[a-z0-9._-]+$"},
+    "issued_at": {"type": "string", "format": "date-time"},
+    "expires_at": {"type": "string", "format": "date-time"},
+    "expires_in_seconds": {"type": "integer", "minimum": 1, "maximum": 604800},
+    "access": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["method", "credential_type"],
+      "properties": {
+        "method": {"const": "GET"},
+        "credential_type": {"const": "presigned-url"}
+      }
+    },
+    "urls": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {"type": "string", "format": "uri"}
+    }
+  }
+}

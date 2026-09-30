@@ -1,0 +1,27 @@
+{
+  "@context": "https://doi.org/10.5063/schema/codemeta-2.0",
+  "@type": "SoftwareSourceCode",
+  "name": "B2 Reference Architectures for AI Data Providers",
+  "description": "Reference architectures, release contracts, and runnable examples for collecting, annotating, validating, publishing, and delivering AI datasets with Backblaze B2.",
+  "version": "0.1.0",
+  "dateModified": "2026-09-29",
+  "url": "https://www.backblaze.com/docs/cloud-storage-ai-machine-learning",
+  "license": "https://spdx.org/licenses/MIT",
+  "programmingLanguage": ["Python"],
+  "keywords": [
+    "ai-datasets",
+    "data-annotation",
+    "dataset-versioning",
+    "dataset-delivery",
+    "cvat",
+    "label-studio",
+    "backblaze-b2",
+    "s3-compatible",
+    "reference-architecture"
+  ],
+  "author": {
+    "@type": "Organization",
+    "name": "Backblaze, Inc.",
+    "url": "https://www.backblaze.com/"
+  }
+}

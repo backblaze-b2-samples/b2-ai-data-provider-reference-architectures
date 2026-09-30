@@ -1,0 +1,4 @@
+{
+  "isFileLockEnabled": true,
+  "defaultRetention": {"mode": "governance", "period": {"duration": 90, "unit": "days"}}
+}

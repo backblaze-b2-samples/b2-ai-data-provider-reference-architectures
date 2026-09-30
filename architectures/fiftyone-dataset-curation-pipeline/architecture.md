@@ -1,4 +1,4 @@
-# FiftyOne dataset curation and quality pipeline on Backblaze B2
+# Curate datasets and publish quality evidence with each release
 
 Evidence reviewed: 2026-09-29. FiftyOne Enterprise documents cloud-backed media, managed cloud credentials, and a MinIO-compatible configuration with a custom `endpoint_url`. This architecture treats that path as a B2 integration candidate and requires the exact addressing and media operations to pass the acceptance checks below.
 

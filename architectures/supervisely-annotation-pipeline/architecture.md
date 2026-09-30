@@ -1,4 +1,4 @@
-# Supervisely annotation and dataset pipeline on Backblaze B2
+# Transform and annotate remote media, then release immutable datasets
 
 Evidence reviewed: 2026-09-29. Supervisely documents support for any S3-compatible remote storage, configurable endpoints, cloud imports, remote links, and S3-compatible exports. This design maps those documented controls to B2; deployment-specific addressing, credentials, media loading, and write behavior still require acceptance testing.
 

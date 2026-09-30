@@ -13,12 +13,12 @@ Canonical Backblaze product documentation: https://www.backblaze.com/docs/cloud-
 
 ## Architectures
 
-- [CVAT annotation pipeline on Backblaze B2](architectures/cvat-annotation-pipeline/architecture.md): Collect images, annotate in CVAT, validate COCO exports, publish immutable dataset versions, and deliver them directly from B2.
-- [Label Studio annotation pipeline on Backblaze B2](architectures/label-studio-annotation-pipeline/architecture.md): Sync source objects into Label Studio, write completed annotations to target storage, validate them, and publish customer-ready dataset versions on B2.
-- [Dataloop DDOE direct-data pipeline on Backblaze B2](architectures/dataloop-direct-data-pipeline/architecture.md): Connect Dataloop DDOE to B2 through its generic S3 API integration, process datasets without making the platform the system of record, and publish governed releases back to B2.
-- [Supervisely annotation and dataset pipeline on Backblaze B2](architectures/supervisely-annotation-pipeline/architecture.md): Connect Supervisely to B2 through its configurable S3-compatible storage paths, annotate or transform remote media, and publish immutable dataset releases.
-- [FiftyOne dataset curation and quality pipeline on Backblaze B2](architectures/fiftyone-dataset-curation-pipeline/architecture.md): Reference B2-backed media from FiftyOne Enterprise, curate and evaluate datasets on compute, and publish selected samples, labels, and quality evidence as immutable releases.
-- [Roboflow presigned import and release pipeline with Backblaze B2](architectures/roboflow-presigned-import-pipeline/architecture.md): Select B2 objects, give Roboflow time-limited read URLs for API import, process the copied assets in Roboflow, and return approved exports to governed B2 releases.
+- [Annotate images and video, then publish versioned datasets](architectures/cvat-annotation-pipeline/architecture.md): Collect images, annotate in CVAT, validate COCO exports, publish immutable dataset versions, and deliver them directly from B2.
+- [Annotate multimodal data with separate source and target storage](architectures/label-studio-annotation-pipeline/architecture.md): Sync source objects into Label Studio, write completed annotations to target storage, validate them, and publish customer-ready dataset versions on B2.
+- [Process datasets in place and publish governed releases](architectures/dataloop-direct-data-pipeline/architecture.md): Connect Dataloop DDOE to B2 through its generic S3 API integration, process datasets without making the platform the system of record, and publish governed releases back to B2.
+- [Transform and annotate remote media, then release immutable datasets](architectures/supervisely-annotation-pipeline/architecture.md): Connect Supervisely to B2 through its configurable S3-compatible storage paths, annotate or transform remote media, and publish immutable dataset releases.
+- [Curate datasets and publish quality evidence with each release](architectures/fiftyone-dataset-curation-pipeline/architecture.md): Reference B2-backed media from FiftyOne Enterprise, curate and evaluate datasets on compute, and publish selected samples, labels, and quality evidence as immutable releases.
+- [Import to a training platform via presigned URLs and return approved exports](architectures/roboflow-presigned-import-pipeline/architecture.md): Select B2 objects, give Roboflow time-limited read URLs for API import, process the copied assets in Roboflow, and return approved exports to governed B2 releases.
 
 ## Contracts and schemas
 

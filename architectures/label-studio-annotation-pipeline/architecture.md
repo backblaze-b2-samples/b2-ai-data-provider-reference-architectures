@@ -1,4 +1,4 @@
-# Label Studio annotation pipeline on Backblaze B2
+# Annotate multimodal data with separate source and target storage
 
 Evidence reviewed: 2026-09-29. This design is based on Label Studio's source/target storage documentation, its boto3 custom-endpoint implementation, and current Backblaze B2 documentation. Deployment-specific permissions, CORS, and network controls must be tested in the target environment.
 

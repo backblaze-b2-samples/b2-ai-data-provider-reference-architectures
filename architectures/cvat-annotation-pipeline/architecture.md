@@ -1,4 +1,4 @@
-# CVAT annotation pipeline on Backblaze B2
+# Annotate images and video, then publish versioned datasets
 
 Evidence reviewed: 2026-09-29. CVAT source `develop` @ `0a0056414` (reports `2.49.1-alpha`), docs.cvat.ai, B2 documentation, B2 CLI shapes, and emulator-backed application tests. See [Evidence and validation scope](#evidence-and-validation-scope).
 

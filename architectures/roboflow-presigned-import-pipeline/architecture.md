@@ -1,4 +1,4 @@
-# Roboflow presigned import and release pipeline with Backblaze B2
+# Import to a training platform via presigned URLs and return approved exports
 
 Evidence reviewed: 2026-09-29. Roboflow documents one-time or scripted ingestion from S3 through presigned URLs and its upload API. This architecture uses the same bounded transfer pattern with B2-generated S3 presigned URLs. It does not claim that Roboflow's persistent AWS Datasource or Bucket Mirror accepts a Backblaze custom endpoint.
 

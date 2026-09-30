@@ -1,4 +1,4 @@
-# Dataloop DDOE direct-data pipeline on Backblaze B2
+# Process datasets in place and publish governed releases
 
 Evidence reviewed: 2026-09-29. This design maps Dataloop DDOE's documented generic S3 API integration and direct-data model to the Backblaze B2 S3-compatible endpoint. The documentation presents the connector under DDOE's on-premises provider category, so the target DDOE release must pass the acceptance checks below before production use.
 

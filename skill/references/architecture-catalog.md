@@ -3,7 +3,7 @@
 
 Evidence catalog date: 2026-09-29. For changing B2 product details, use <https://www.backblaze.com/docs/cloud-storage-ai-machine-learning> as the authority.
 
-## CVAT annotation pipeline on Backblaze B2
+## Annotate images and video, then publish versioned datasets
 
 Collect images, annotate in CVAT, validate COCO exports, publish immutable dataset versions, and deliver them directly from B2.
 
@@ -21,7 +21,7 @@ Collect images, annotate in CVAT, validate COCO exports, publish immutable datas
 
 **Evidence basis:** CVAT documentation and source review; B2 documentation and CLI shape review; Moto-backed S3 application tests.
 
-## Label Studio annotation pipeline on Backblaze B2
+## Annotate multimodal data with separate source and target storage
 
 Sync source objects into Label Studio, write completed annotations to target storage, validate them, and publish customer-ready dataset versions on B2.
 
@@ -39,7 +39,7 @@ Sync source objects into Label Studio, write completed annotations to target sto
 
 **Evidence basis:** Label Studio source and target storage documentation review; Label Studio boto3 custom-endpoint source review; B2 S3 compatibility and key capability review.
 
-## Dataloop DDOE direct-data pipeline on Backblaze B2
+## Process datasets in place and publish governed releases
 
 Connect Dataloop DDOE to B2 through its generic S3 API integration, process datasets without making the platform the system of record, and publish governed releases back to B2.
 
@@ -57,7 +57,7 @@ Connect Dataloop DDOE to B2 through its generic S3 API integration, process data
 
 **Evidence basis:** Dataloop DDOE generic S3 API documentation review; Dataloop storage integration and dataset synchronization documentation review; B2 S3 endpoint and application-key capability mapping.
 
-## Supervisely annotation and dataset pipeline on Backblaze B2
+## Transform and annotate remote media, then release immutable datasets
 
 Connect Supervisely to B2 through its configurable S3-compatible storage paths, annotate or transform remote media, and publish immutable dataset releases.
 
@@ -75,7 +75,7 @@ Connect Supervisely to B2 through its configurable S3-compatible storage paths, 
 
 **Evidence basis:** Supervisely S3-compatible remote-storage documentation review; Supervisely cloud import, remote-link, and export documentation review; B2 S3 endpoint, multipart, and application-key capability mapping.
 
-## FiftyOne dataset curation and quality pipeline on Backblaze B2
+## Curate datasets and publish quality evidence with each release
 
 Reference B2-backed media from FiftyOne Enterprise, curate and evaluate datasets on compute, and publish selected samples, labels, and quality evidence as immutable releases.
 
@@ -93,7 +93,7 @@ Reference B2-backed media from FiftyOne Enterprise, curate and evaluate datasets
 
 **Evidence basis:** FiftyOne Enterprise cloud-backed media documentation review; FiftyOne MinIO-compatible endpoint and managed-credential documentation review; B2 S3 addressing, credential, and object-access requirements analysis.
 
-## Roboflow presigned import and release pipeline with Backblaze B2
+## Import to a training platform via presigned URLs and return approved exports
 
 Select B2 objects, give Roboflow time-limited read URLs for API import, process the copied assets in Roboflow, and return approved exports to governed B2 releases.
 

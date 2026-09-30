@@ -5,7 +5,7 @@ Canonical B2 product documentation: <https://www.backblaze.com/docs/cloud-storag
 
 Use this index to choose a workflow. Each linked architecture states its evidence basis and security boundaries. All workflows use the shared [dataset release contract](dataset-release-contract.md).
 
-## [CVAT annotation pipeline on Backblaze B2](../architectures/cvat-annotation-pipeline/architecture.md)
+## [Annotate images and video, then publish versioned datasets](../architectures/cvat-annotation-pipeline/architecture.md)
 
 Collect images, annotate in CVAT, validate COCO exports, publish immutable dataset versions, and deliver them directly from B2.
 
@@ -14,7 +14,7 @@ Collect images, annotate in CVAT, validate COCO exports, publish immutable datas
 - **Workflow:** Collect raw media into a source bucket → Attach B2 to CVAT through its Amazon S3 provider and custom endpoint → Export annotations into a work bucket → Validate schema, label bounds, coverage, and checksums → Publish an immutable version and write its release manifest last → Deliver with short-lived presigned URLs and trigger downstream refresh
 - **Expected scale:** Large image and video collections with many sequential object reads and writes. Standard B2 is the default; measure sustained multi-GPU or parallel refresh throughput before considering Overdrive or a compute-local cache.
 
-## [Label Studio annotation pipeline on Backblaze B2](../architectures/label-studio-annotation-pipeline/architecture.md)
+## [Annotate multimodal data with separate source and target storage](../architectures/label-studio-annotation-pipeline/architecture.md)
 
 Sync source objects into Label Studio, write completed annotations to target storage, validate them, and publish customer-ready dataset versions on B2.
 
@@ -23,7 +23,7 @@ Sync source objects into Label Studio, write completed annotations to target sto
 - **Workflow:** Upload source media or task definitions into a raw-data prefix → Connect a Label Studio S3 source storage using the B2 endpoint → Serve media through presigned URLs or the Label Studio storage proxy → Connect a separate S3 target storage for completed annotations → Validate exported tasks and media references → Publish immutable releases with the shared release contract → Deliver customer-specific, short-lived download URLs
 - **Expected scale:** Multimodal annotation projects whose source media is larger than the Label Studio application filesystem. Presigned delivery keeps media traffic off Label Studio workers; proxy mode trades simpler browser access for higher application bandwidth and worker load.
 
-## [Dataloop DDOE direct-data pipeline on Backblaze B2](../architectures/dataloop-direct-data-pipeline/architecture.md)
+## [Process datasets in place and publish governed releases](../architectures/dataloop-direct-data-pipeline/architecture.md)
 
 Connect Dataloop DDOE to B2 through its generic S3 API integration, process datasets without making the platform the system of record, and publish governed releases back to B2.
 
@@ -32,7 +32,7 @@ Connect Dataloop DDOE to B2 through its generic S3 API integration, process data
 - **Workflow:** Ingest source objects and a stable inventory into a B2 raw-data prefix → Configure a DDOE S3 API integration with the regional B2 endpoint → Attach the storage integration to a compute cluster and synchronize a dataset → Run preprocessing, annotation, enrichment, or AI applications in DDOE → Export approved outputs and quality reports into a B2 work prefix → Validate and publish an immutable release with its manifest written last → Deliver the release through short-lived presigned URLs
 - **Expected scale:** Enterprise image, video, document, LiDAR, and multimodal collections processed by Kubernetes-hosted applications and pipelines. Keep source objects in B2 and measure synchronization, preview generation, and parallel read patterns with representative object sizes before production rollout.
 
-## [Supervisely annotation and dataset pipeline on Backblaze B2](../architectures/supervisely-annotation-pipeline/architecture.md)
+## [Transform and annotate remote media, then release immutable datasets](../architectures/supervisely-annotation-pipeline/architecture.md)
 
 Connect Supervisely to B2 through its configurable S3-compatible storage paths, annotate or transform remote media, and publish immutable dataset releases.
 
@@ -41,7 +41,7 @@ Connect Supervisely to B2 through its configurable S3-compatible storage paths, 
 - **Workflow:** Collect source images and video into a B2 raw-data prefix → Configure Supervisely remote storage or a team cloud connection with the regional B2 endpoint → Import existing media by reference when the selected Supervisely workflow supports remote links → Annotate, review, transform, or run Supervisely applications → Export approved datasets and reports into a B2 work prefix → Validate and publish an immutable release with its manifest written last → Deliver the release with customer-specific presigned URLs
 - **Expected scale:** Large image and video projects with interactive annotation, model-assisted processing, and repeated dataset export. Direct links avoid unnecessary source copies, while preview caches and interactive reads still require capacity and latency testing near Supervisely compute.
 
-## [FiftyOne dataset curation and quality pipeline on Backblaze B2](../architectures/fiftyone-dataset-curation-pipeline/architecture.md)
+## [Curate datasets and publish quality evidence with each release](../architectures/fiftyone-dataset-curation-pipeline/architecture.md)
 
 Reference B2-backed media from FiftyOne Enterprise, curate and evaluate datasets on compute, and publish selected samples, labels, and quality evidence as immutable releases.
 
@@ -50,7 +50,7 @@ Reference B2-backed media from FiftyOne Enterprise, curate and evaluate datasets
 - **Workflow:** Store source media and a stable inventory in a B2 raw-data prefix → Configure a custom-endpoint cloud credential path in FiftyOne Enterprise and test it against B2 → Create a FiftyOne dataset whose sample filepaths resolve to B2-backed media → Compute embeddings, similarity, quality, duplicate, and evaluation views on external compute → Export selected samples, labels, reports, and provenance into a B2 work prefix → Validate and publish an immutable curated release with its manifest written last → Deliver releases through presigned URLs or downstream compute access
 - **Expected scale:** Large computer-vision and multimodal datasets requiring interactive exploration, embeddings, quality analysis, and curated subset releases. Media remains object-backed, but databases, indexes, embeddings, previews, and frequently reused objects may need storage or caching close to FiftyOne compute.
 
-## [Roboflow presigned import and release pipeline with Backblaze B2](../architectures/roboflow-presigned-import-pipeline/architecture.md)
+## [Import to a training platform via presigned URLs and return approved exports](../architectures/roboflow-presigned-import-pipeline/architecture.md)
 
 Select B2 objects, give Roboflow time-limited read URLs for API import, process the copied assets in Roboflow, and return approved exports to governed B2 releases.
 

@@ -3,7 +3,7 @@ updated: "2026-09-29"
 canonical_documentation: https://www.backblaze.com/docs/cloud-storage-ai-machine-learning
 architectures:
   - id: cvat-annotation-pipeline
-    name: CVAT annotation pipeline on Backblaze B2
+    name: Annotate images and video, then publish versioned datasets
     slug: cvat-annotation-pipeline
     summary: Collect images, annotate in CVAT, validate COCO exports, publish immutable dataset versions, and deliver them directly from B2.
     audience:
@@ -70,7 +70,7 @@ architectures:
       release_contract: docs/dataset-release-contract.md
 
   - id: label-studio-annotation-pipeline
-    name: Label Studio annotation pipeline on Backblaze B2
+    name: Annotate multimodal data with separate source and target storage
     slug: label-studio-annotation-pipeline
     summary: Sync source objects into Label Studio, write completed annotations to target storage, validate them, and publish customer-ready dataset versions on B2.
     audience:
@@ -137,7 +137,7 @@ architectures:
       release_contract: docs/dataset-release-contract.md
 
   - id: dataloop-direct-data-pipeline
-    name: Dataloop DDOE direct-data pipeline on Backblaze B2
+    name: Process datasets in place and publish governed releases
     slug: dataloop-direct-data-pipeline
     summary: Connect Dataloop DDOE to B2 through its generic S3 API integration, process datasets without making the platform the system of record, and publish governed releases back to B2.
     audience:
@@ -204,7 +204,7 @@ architectures:
       release_contract: docs/dataset-release-contract.md
 
   - id: supervisely-annotation-pipeline
-    name: Supervisely annotation and dataset pipeline on Backblaze B2
+    name: Transform and annotate remote media, then release immutable datasets
     slug: supervisely-annotation-pipeline
     summary: Connect Supervisely to B2 through its configurable S3-compatible storage paths, annotate or transform remote media, and publish immutable dataset releases.
     audience:
@@ -271,7 +271,7 @@ architectures:
       release_contract: docs/dataset-release-contract.md
 
   - id: fiftyone-dataset-curation-pipeline
-    name: FiftyOne dataset curation and quality pipeline on Backblaze B2
+    name: Curate datasets and publish quality evidence with each release
     slug: fiftyone-dataset-curation-pipeline
     summary: Reference B2-backed media from FiftyOne Enterprise, curate and evaluate datasets on compute, and publish selected samples, labels, and quality evidence as immutable releases.
     audience:
@@ -338,7 +338,7 @@ architectures:
       release_contract: docs/dataset-release-contract.md
 
   - id: roboflow-presigned-import-pipeline
-    name: Roboflow presigned import and release pipeline with Backblaze B2
+    name: Import to a training platform via presigned URLs and return approved exports
     slug: roboflow-presigned-import-pipeline
     summary: Select B2 objects, give Roboflow time-limited read URLs for API import, process the copied assets in Roboflow, and return approved exports to governed B2 releases.
     audience:

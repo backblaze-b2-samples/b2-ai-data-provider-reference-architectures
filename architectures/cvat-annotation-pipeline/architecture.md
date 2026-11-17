@@ -1,7 +1,5 @@
 # Annotate images and video, then publish versioned datasets
 
-Evidence reviewed: 2026-09-29. CVAT source `develop` @ `0a0056414` (reports `2.49.1-alpha`), docs.cvat.ai, B2 documentation, B2 CLI shapes, and emulator-backed application tests. See [Evidence and validation scope](#evidence-and-validation-scope).
-
 ## Workload
 
 An AI data provider collects raw images, has annotators label them in [CVAT](https://github.com/cvat-ai/cvat),
@@ -43,8 +41,8 @@ sequenceDiagram
   Ann->>C: label in UI (served by CVAT, not B2)
   C->>B: upload export (exports/batch/...)
   B-->>V: webhook b2:ObjectCreated:* (HMAC signed, at-least-once)
-  V->>B: read export, validate, write releases/ds/vN/* then manifest.json
-  V->>B: Object Lock retention set on release objects
+  V->>B: read export, validate, write releases/ds/vN/*
+  V->>B: Apply and verify retention, then write manifest.json last
   Cu->>V: request delivery
   V->>Cu: pre-signed GET URLs (short TTL, read-only key)
   Cu->>B: download (direct)
@@ -105,7 +103,7 @@ Marked = used by this architecture. Unmarked = deliberately not used.
 - Local cache (NVMe next to compute): consider when validators or training re-read the same dataset version many times. Safe because released versions are immutable and keyed by version.
 - Neither helps annotator UI latency; that path is CVAT's own chunk cache.
 
-## CVAT connection (verified against CVAT docs and source)
+## CVAT connection
 
 CVAT has a Backblaze B2 section in its docs: choose provider **Amazon S3** and set **Endpoint URL** to `https://s3.<region>.backblazeb2.com`.
 
@@ -119,24 +117,25 @@ CVAT has a Backblaze B2 section in its docs: choose provider **Amazon S3** and s
 | Prefix | Optional; scope CVAT to `raw/<batch>/` or `exports/` |
 | Manifests | Optional `manifest.jsonl`; required only for CVAT features that need a manifest (see CVAT docs) |
 
-Source check: `S3CloudStorage` builds a boto3 `Session.resource("s3", endpoint_url=...)` and uses `head_bucket`, `head_object`, `list_objects_v2`, ranged/whole `get_object` downloads and `upload_fileobj` (`cvat/apps/engine/cloud_provider.py`). `specific_attributes` is a URL query string (`endpoint_url=...&region=...&prefix=...`). Object keys starting with `/` or containing `//` are unusable in CVAT. Automating the attach: [infrastructure/cvat](../../infrastructure/cvat/README.md).
+CVAT's S3 storage provider uses boto3 with the configured endpoint for `head_bucket`, `head_object`, `list_objects_v2`, ranged/whole `get_object` downloads and `upload_fileobj` (`cvat/apps/engine/cloud_provider.py`). `specific_attributes` is a URL query string (`endpoint_url=...&region=...&prefix=...`). Object keys starting with `/` or containing `//` are unusable in CVAT. Automating the attach: [infrastructure/cvat](../../infrastructure/cvat/README.md).
 
 ## Security, retention, provenance, access
 
-Key roles (one bucket + one prefix each; commands in [examples](../../examples/README.md)):
+Key roles (one bucket + one prefix each; commands in [examples](../../examples/README.md)). Connection roles include `listBuckets` for `HeadBucket`; the sample uploader also reads object metadata to skip identical uploads:
 
 | Role | Bucket / prefix | Capabilities |
 |---|---|---|
-| ingest-writer | raw `raw/` | `listFiles`, `writeFiles` |
-| cvat-source-reader | raw `raw/` | `listFiles`, `readFiles` |
-| cvat-export-writer | work `exports/` | `listFiles`, `readFiles`, `writeFiles` |
+| ingest-writer | raw `raw/` | `listBuckets`, `listFiles`, `readFiles`, `writeFiles` |
+| cvat-source-reader | raw `raw/` | `listBuckets`, `listFiles`, `readFiles` |
+| cvat-export-writer | work `exports/` | `listBuckets`, `listFiles`, `readFiles`, `writeFiles` |
 | validator-reader | work `exports/` | `listFiles`, `readFiles` |
-| publisher | releases `releases/` | `listFiles`, `readFiles`, `writeFiles`, `writeFileRetentions` |
+| publisher | releases `releases/` | `listBuckets`, `listFiles`, `readFiles`, `writeFiles`, `writeFileRetentions`, `readFileRetentions` |
 | delivery-signer | releases `releases/<dataset>/`, expiring | `listFiles`, `readFiles` (URLs cannot write) |
 | provisioning (admin/master) | account | Bucket settings, lock, replication, notifications. Master key only where provisioning requires it; not used at runtime |
 
 - Encryption: SSE-B2 default; TLS in transit.
-- Retention: releases are write-once via Object Lock (governance by default; compliance is irreversible, choose deliberately). Enabling Object Lock on a bucket cannot be reverted, and it lowers the per-version file-metadata limit, so keep metadata small (the sample stores one `sha256` entry).
+- Retention: publish each release under a unique version prefix. Object Lock preserves individual object versions for the configured retention period; it permits a new version under the same key. Pin approved version IDs or verify content against a trusted manifest. Use governance retention by default; compliance retention cannot be shortened. Enabling Object Lock on a bucket cannot be reverted, and it lowers the per-version file-metadata limit, so keep metadata small (the sample stores one `sha256` entry).
+- Publication: serialize jobs for each dataset/version through one publisher. The CLI processes share one persistent OS-lock directory on that host; producers on other hosts submit work through the same publishing service or queue. Retention is applied and verified for existing versions as well as new uploads.
 - Provenance: every release carries `manifest.json` with per-file SHA-256 and a content fingerprint, written last as a commit marker; each object also stores its `sha256` in metadata. Raw batch and CVAT export prefixes tie a release back to its inputs.
 - Access: customers get short-TTL pre-signed URLs; anyone holding a URL can use it until expiry, so treat delivery manifests as secrets.
 - Secrets: `.env` files at mode 0600, gitignored; keys never logged.
@@ -147,22 +146,17 @@ Key roles (one bucket + one prefix each; commands in [examples](../../examples/R
 - Serving images to annotators interactively: latency-sensitive; CVAT prepares and serves its own chunks.
 - Anything needing POSIX semantics or in-place edits: B2 objects are immutable; edits create versions.
 - Running the validator, model pre-annotation or training: compute lives elsewhere (optionally a compute partner).
-- Customer delivery via Cloud Replication: it copies bucket to bucket inside your account; customers need URLs or their own keys.
 - Object tagging: B2's S3 API does not fully support it; use key prefixes and metadata.
+
+Customer downloads use presigned URLs in this design. [Cloud Replication](https://www.backblaze.com/docs/cloud-storage-cloud-replication) copies between buckets within or across accounts for disaster recovery or data locality; it does not replace the application's customer authorization and delivery flow. A destination in another region requires an account in that region.
 
 ## Integrations
 
-| Tool | Role | Connection | Evidence |
+| Tool | Role | Connection | Setup guide |
 |---|---|---|---|
-| CVAT | Annotation, QA, export | S3 API cloud storage, Endpoint URL | source 2.49.1-alpha (`develop`), docs 2026-09-29 |
-| CVAT webhooks | Job/task state changes | HTTP webhook (complements B2 events; CVAT-level, not storage-level) | docs 2026-09-29 |
+| CVAT | Annotation, QA, export | Amazon S3 cloud storage with Endpoint URL `https://s3.<region>.backblazeb2.com` | [CVAT: attach Backblaze B2](https://docs.cvat.ai/docs/workspace/attach-cloud-storage/#backblaze-b2) |
+| CVAT webhooks | Job/task state changes | HTTP webhook (complements B2 events; CVAT-level, not storage-level) | [CVAT webhooks](https://docs.cvat.ai/docs/administration/advanced/webhooks/) |
 
 ## Sample application
 
 [applications/cvat-b2-dataset-pipeline](../../applications/cvat-b2-dataset-pipeline/README.md): synthetic images + COCO annotations -> raw/export staging -> validation -> versioned release with checksums (optional Object Lock) -> pre-signed delivery. Collapses the three buckets into one with prefixes for a simple setup.
-
-## Evidence and validation scope
-
-The design uses CVAT fields and S3 calls established by documentation and source review; B2 JSON shapes and event types established by B2 documentation and CLI help; and sample application behavior covered by moto-backed S3 tests.
-
-Deployment validation must cover the chosen CVAT release, real key scoping, bucket Object Lock and lifecycle posture, replication, event delivery and signature handling, presigned URL policy, browser CORS operations, and measured throughput. These are environment-specific acceptance checks rather than properties inferred from the emulator tests.

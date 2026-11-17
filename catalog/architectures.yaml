@@ -1,6 +1,17 @@
-schema_version: 1.0.0
-updated: "2026-09-29"
+schema_version: 2.0.0
+updated: "2026-11-16"
 canonical_documentation: https://www.backblaze.com/docs/cloud-storage-ai-machine-learning
+related_categories:
+  - name: Generative Video
+    url: https://github.com/backblaze-b2-samples/b2-gen-video-reference-architectures
+  - name: Image Generation
+    url: https://github.com/backblaze-b2-samples/b2-image-generation-reference-architectures
+  - name: Robotics
+    url: https://github.com/backblaze-b2-samples/b2-robotics-reference-architectures
+  - name: Autonomous Vehicles
+    url: https://github.com/backblaze-b2-samples/b2-autonomous-vehicle-reference-architectures
+  - name: Commercial Drones
+    url: https://github.com/backblaze-b2-samples/b2-commercial-drone-reference-architectures
 architectures:
   - id: cvat-annotation-pipeline
     name: Annotate images and video, then publish versioned datasets
@@ -16,7 +27,7 @@ architectures:
       - Attach B2 to CVAT through its Amazon S3 provider and custom endpoint
       - Export annotations into a work bucket
       - Validate schema, label bounds, coverage, and checksums
-      - Publish an immutable version and write its release manifest last
+      - Serialize publication per dataset/version, verify requested retention on all object versions, and write the release manifest last
       - Deliver with short-lived presigned URLs and trigger downstream refresh
     capabilities:
       - S3-compatible API
@@ -31,9 +42,10 @@ architectures:
       - id: cvat
         name: CVAT
         role: Image and video annotation, review, and dataset export
-        connection: Amazon S3 cloud storage with a Backblaze B2 endpoint URL
+        connection: Add cloud storage with provider Amazon S3, the bucket name, a bucket-scoped B2 application key, and Endpoint URL https://s3.<region>.backblazeb2.com
+        connection_type: s3-custom-endpoint
         url: https://docs.cvat.ai/docs/workspace/attach-cloud-storage/
-        evidence: CVAT documentation and S3 client source reviewed 2026-09-29
+        setup_url: https://docs.cvat.ai/docs/workspace/attach-cloud-storage/#backblaze-b2
     prerequisites:
       - A private B2 bucket for each lifecycle zone, or one sample bucket with separate prefixes
       - Prefix-scoped B2 application keys for each runtime role
@@ -42,17 +54,6 @@ architectures:
     expected_scale:
       profile: Large image and video collections with many sequential object reads and writes
       notes: Standard B2 is the default; measure sustained multi-GPU or parallel refresh throughput before considering Overdrive or a compute-local cache.
-    validation:
-      status: source-reviewed-and-automated-tests
-      date: "2026-09-29"
-      methods:
-        - CVAT documentation and source review
-        - B2 documentation and CLI shape review
-        - Moto-backed S3 application tests
-      evidence:
-        - applications/cvat-b2-dataset-pipeline/tests
-        - infrastructure/cvat/test_attach_cloud_storage.py
-        - architectures/cvat-annotation-pipeline/architecture.md
     security_considerations:
       - Use separate prefix-scoped keys for ingest, annotation reads, exports, publishing, and delivery signing
       - Treat presigned URLs and delivery manifests as bearer credentials
@@ -98,9 +99,9 @@ architectures:
       - id: label-studio
         name: Label Studio
         role: Multimodal task import, annotation, review, and annotation export
-        connection: Amazon S3 source and target storage with the Backblaze B2 S3 endpoint
+        connection: Amazon S3 source and target storage with S3 Endpoint https://s3.<region>.backblazeb2.com and Region Name set to the bucket region; enable presigned URLs with CORS for direct browser reads, or proxy media through Label Studio
+        connection_type: s3-custom-endpoint
         url: https://labelstud.io/guide/storage_s3
-        evidence: Label Studio storage documentation and S3 client source reviewed 2026-09-29
     prerequisites:
       - Private B2 raw, work, and release buckets or equivalent prefixes
       - Separate source-reader and target-writer application keys
@@ -109,17 +110,6 @@ architectures:
     expected_scale:
       profile: Multimodal annotation projects whose source media is larger than the Label Studio application filesystem
       notes: Presigned delivery keeps media traffic off Label Studio workers; proxy mode trades simpler browser access for higher application bandwidth and worker load.
-    validation:
-      status: source-reviewed
-      date: "2026-09-29"
-      methods:
-        - Label Studio source and target storage documentation review
-        - Label Studio boto3 custom-endpoint source review
-        - B2 S3 compatibility and key capability review
-      evidence:
-        - https://labelstud.io/guide/storage
-        - https://labelstud.io/guide/storage_s3
-        - architectures/label-studio-annotation-pipeline/architecture.md
     security_considerations:
       - Use separate source-reader and target-writer keys with the narrowest bucket prefix
       - Do not enable target deletion unless the workflow requires it
@@ -165,9 +155,9 @@ architectures:
       - id: dataloop-ddoe
         name: Dataloop DDOE
         role: Dataset synchronization, preprocessing, annotation, applications, pipelines, and AI workloads
-        connection: Generic S3 API storage integration configured with the regional Backblaze B2 endpoint; B2-specific acceptance testing is required
+        connection: Storage integration with provider On-Prem and type S3 API, Endpoint URL https://s3.<region>.backblazeb2.com, Region set to the bucket region, and a prefix-scoped B2 application key
+        connection_type: s3-custom-endpoint
         url: https://docs.dataloop.ai/docs/s3-api
-        evidence: Dataloop DDOE S3 API and storage-integration documentation reviewed 2026-09-29
     prerequisites:
       - A DDOE deployment with an organization administrator and an attached compute cluster
       - Private B2 raw, work, and release buckets or equivalent prefixes
@@ -176,17 +166,6 @@ architectures:
     expected_scale:
       profile: Enterprise image, video, document, LiDAR, and multimodal collections processed by Kubernetes-hosted applications and pipelines
       notes: Keep source objects in B2 and measure synchronization, preview generation, and parallel read patterns with representative object sizes before production rollout.
-    validation:
-      status: documentation-reviewed
-      date: "2026-09-29"
-      methods:
-        - Dataloop DDOE generic S3 API documentation review
-        - Dataloop storage integration and dataset synchronization documentation review
-        - B2 S3 endpoint and application-key capability mapping
-      evidence:
-        - https://docs.dataloop.ai/docs/s3-api
-        - https://docs.dataloop.ai/docs/integrations-overview
-        - architectures/dataloop-direct-data-pipeline/architecture.md
     security_considerations:
       - Scope the DDOE source key to only the bucket and prefix synchronized into the platform
       - Put generated previews, platform metadata, and processing outputs in an explicitly writable prefix rather than granting broad raw-data writes
@@ -232,9 +211,9 @@ architectures:
       - id: supervisely
         name: Supervisely
         role: Image and video annotation, review, transformation, application execution, and dataset import or export
-        connection: S3-compatible remote storage or team cloud storage configured with the regional Backblaze B2 endpoint
+        connection: STORAGE_PROVIDER=minio with STORAGE_ENDPOINT=s3.<region>.backblazeb2.com and STORAGE_PORT=443 for instance storage, or a minio provider entry with the same endpoint and bucket region for remote links and team cloud storage
+        connection_type: s3-custom-endpoint
         url: https://docs.supervisely.com/enterprise-edition/advanced-tuning/s3
-        evidence: Supervisely remote-storage and cloud import/export documentation reviewed 2026-09-29
     prerequisites:
       - A compatible Supervisely deployment and administrator access for the chosen storage configuration
       - Private B2 raw, work, and release buckets or explicitly separated prefixes
@@ -242,18 +221,7 @@ architectures:
       - A decision between instance-wide remote storage, team cloud storage, copying imports, and remote links
     expected_scale:
       profile: Large image and video projects with interactive annotation, model-assisted processing, and repeated dataset export
-      notes: Direct links avoid unnecessary source copies, while preview caches and interactive reads still require capacity and latency testing near Supervisely compute.
-    validation:
-      status: documentation-reviewed
-      date: "2026-09-29"
-      methods:
-        - Supervisely S3-compatible remote-storage documentation review
-        - Supervisely cloud import, remote-link, and export documentation review
-        - B2 S3 endpoint, multipart, and application-key capability mapping
-      evidence:
-        - https://docs.supervisely.com/enterprise-edition/advanced-tuning/s3
-        - https://docs.supervisely.com/import-and-export/import/import-from-cloud
-        - architectures/supervisely-annotation-pipeline/architecture.md
+      notes: Direct links avoid unnecessary source copies; size preview caches near Supervisely compute for interactive reads.
     security_considerations:
       - Use different credentials for linked source reads and export writes
       - Restrict remote-storage administration and never expose application keys in project assets or link files
@@ -281,7 +249,7 @@ architectures:
     problem: Inspect, search, deduplicate, evaluate, and select large datasets without turning the curation platform database into the durable release system of record.
     workflow:
       - Store source media and a stable inventory in a B2 raw-data prefix
-      - Configure a custom-endpoint cloud credential path in FiftyOne Enterprise and test it against B2
+      - Configure a FiftyOne Enterprise MinIO cloud credential with the regional B2 endpoint
       - Create a FiftyOne dataset whose sample filepaths resolve to B2-backed media
       - Compute embeddings, similarity, quality, duplicate, and evaluation views on external compute
       - Export selected samples, labels, reports, and provenance into a B2 work prefix
@@ -289,7 +257,7 @@ architectures:
       - Deliver releases through presigned URLs or downstream compute access
     capabilities:
       - Cloud-backed media references
-      - Custom endpoint configuration through the MinIO-compatible credential path
+      - Custom endpoint configuration through the MinIO credential profile
       - Managed bucket-scoped cloud credentials
       - Prefix-scoped B2 application keys
       - Immutable versioned release objects
@@ -299,9 +267,10 @@ architectures:
       - id: fiftyone-enterprise
         name: FiftyOne Enterprise
         role: Dataset visualization, search, curation, embeddings, duplicate analysis, model evaluation, and selection
-        connection: Candidate custom-endpoint connection through FiftyOne's documented MinIO-compatible cloud-media configuration; validate B2 addressing and media access before adoption
+        connection: MinIO cloud credential profile with endpoint_url https://s3.<region>.backblazeb2.com, the bucket region, and a read-only B2 application key; reference media as <alias>://<bucket>/<key>
+        connection_type: s3-custom-endpoint
         url: https://docs.voxel51.com/enterprise/installation.html
-        evidence: FiftyOne Enterprise cloud-media and custom endpoint documentation reviewed 2026-09-29
+        setup_url: https://docs.voxel51.com/enterprise/installation.html#enterprise-cloud-credentials
     prerequisites:
       - A FiftyOne Enterprise deployment with cloud-media support
       - Private B2 raw, work, and release buckets or equivalent prefixes
@@ -310,17 +279,6 @@ architectures:
     expected_scale:
       profile: Large computer-vision and multimodal datasets requiring interactive exploration, embeddings, quality analysis, and curated subset releases
       notes: Media remains object-backed, but databases, indexes, embeddings, previews, and frequently reused objects may need storage or caching close to FiftyOne compute.
-    validation:
-      status: documentation-reviewed
-      date: "2026-09-29"
-      methods:
-        - FiftyOne Enterprise cloud-backed media documentation review
-        - FiftyOne MinIO-compatible endpoint and managed-credential documentation review
-        - B2 S3 addressing, credential, and object-access requirements analysis
-      evidence:
-        - https://docs.voxel51.com/enterprise/cloud_media.html
-        - https://docs.voxel51.com/enterprise/installation.html
-        - architectures/fiftyone-dataset-curation-pipeline/architecture.md
     security_considerations:
       - Use read-only credentials for raw media and separate writers for reports or selected outputs
       - Scope managed cloud credentials to the smallest possible bucket set and user or group audience
@@ -345,7 +303,7 @@ architectures:
       - Computer vision dataset teams
       - AI data provider integration engineers
       - Security and data governance architects
-    problem: Move selected computer-vision assets through a managed processing platform without public buckets, permanent shared credentials, or an unsupported direct-B2 connector claim.
+    problem: Move selected computer-vision assets through a managed processing platform without public buckets or permanent shared credentials.
     workflow:
       - Store private source images and metadata in a B2 raw-data prefix
       - Select an import batch from a stable inventory or manifest
@@ -366,9 +324,10 @@ architectures:
       - id: roboflow
         name: Roboflow
         role: Computer-vision upload, annotation, preprocessing, augmentation, dataset versioning, training, and export
-        connection: One-time or scripted import through B2 presigned URLs submitted to the Roboflow API; this architecture does not claim B2 support in Roboflow Bucket Mirror
+        connection: Submit short-lived B2 presigned GET URLs to the Roboflow upload API for bounded batches; for continuous sync, Roboflow Datasources list Backblaze B2 as an S3-compatible provider (endpoint s3.<region>.backblazeb2.com, path-style off)
+        connection_type: presigned-url
         url: https://docs.roboflow.com/datasets/create-and-upload/adding-data/upload-data-from-aws-gcp-and-azure/aws-s3-bucket
-        evidence: Roboflow presigned-URL import documentation reviewed 2026-09-29; B2 URL generation is covered by the repository S3 client tests
+        setup_url: https://docs.roboflow.com/datasets/create-and-upload/adding-data/datasources
     prerequisites:
       - A private B2 source bucket and a read-only prefix-scoped signing key
       - A Roboflow workspace, project, and API credential stored outside B2
@@ -376,18 +335,7 @@ architectures:
       - A separate route for returning exports to B2 and applying the shared release contract
     expected_scale:
       profile: Selected computer-vision batches imported into a managed platform for labeling, transformation, dataset versioning, or training
-      notes: Presigned import is best for bounded or scripted transfers; large continuous synchronization should be evaluated separately because Roboflow's documented persistent datasource path is AWS-specific.
-    validation:
-      status: documentation-reviewed
-      date: "2026-09-29"
-      methods:
-        - Roboflow AWS S3 and presigned-URL import documentation review
-        - Roboflow upload API flow review
-        - Repository-tested B2-compatible presigned URL generation pattern review
-      evidence:
-        - https://docs.roboflow.com/datasets/create-and-upload/adding-data/upload-data-from-aws-gcp-and-azure/aws-s3-bucket
-        - applications/cvat-b2-dataset-pipeline/tests/test_storage.py
-        - architectures/roboflow-presigned-import-pipeline/architecture.md
+      notes: Presigned import is best for bounded or scripted transfers; for large continuous synchronization, configure a Roboflow Datasource with the B2 endpoint and a read-only prefix-scoped key.
     security_considerations:
       - Generate URLs from a read-only key scoped to the selected source prefix and keep expiry only as long as the import queue requires
       - Treat Roboflow as a separate data processor because imported objects are copied across the trust boundary
@@ -403,3 +351,130 @@ architectures:
       deployment: https://docs.roboflow.com/datasets/create-and-upload/adding-data/upload-data-from-aws-gcp-and-azure/aws-s3-bucket
       sample_data: testdata/synthetic-toy/README.md
       release_contract: docs/dataset-release-contract.md
+
+# External sample applications from the backblaze-b2-samples organization. They demonstrate
+# B2-side patterns; they are not third-party B2 connectors.
+samples:
+  - id: sam2-mask-dataset-builder
+    name: SAM 2 Mask Dataset Builder
+    url: https://github.com/backblaze-b2-samples/sam2-mask-dataset-builder
+    group: workflow
+    summary: Versioned COCO segmentation masks and derived artifacts from B2-backed images and video
+    description: Raw images and video in B2 become versioned COCO RLE, mask PNG, cut-out, and run-metadata artifacts; reviewers and training jobs use presigned reads.
+    architectures: [cvat-annotation-pipeline, label-studio-annotation-pipeline, supervisely-annotation-pipeline, fiftyone-dataset-curation-pipeline]
+
+  - id: mmaction2-action-dataset-builder
+    name: MMAction2 Action Dataset Builder
+    url: https://github.com/backblaze-b2-samples/mmaction2-action-dataset-builder
+    group: workflow
+    summary: Video segmentation, automated labeling, train/validation/test splits, and versioned releases
+    description: Raw video is segmented, clipped, labeled, split, and packaged into versioned training-data releases on B2.
+    relevance: Video annotation, automated labeling, release layout, and dataset release contract examples
+
+  - id: nemo-curator-training-data
+    name: NeMo Curator Training Data
+    url: https://github.com/backblaze-b2-samples/nemo-curator-training-data
+    group: workflow
+    summary: Deduplication, quality filtering, PII redaction, lineage, and versioned JSONL stages
+    description: Deduplication, quality filtering, and PII redaction produce separately versioned JSONL stages with a lineage manifest.
+    architectures: [dataloop-direct-data-pipeline]
+    relevance: Multimodal annotation, provenance, and governed text-corpus processing
+
+  - id: datacomp-image-text-filtering
+    name: DataComp Image-Text Filtering
+    url: https://github.com/backblaze-b2-samples/datacomp-image-text-filtering
+    group: workflow
+    summary: CLIP scoring, baseline filters, duplicate removal, quality metrics, and filtered WebDataset shards
+    description: WebDataset shards stream from B2 through CLIP scoring, baseline filters, and near-duplicate removal; filtered shards and quality metrics return to B2.
+    architectures: [fiftyone-dataset-curation-pipeline, dataloop-direct-data-pipeline]
+    relevance: Dataset-quality workflows
+
+  - id: supervision-sports-highlights
+    name: Supervision Sports Highlights
+    url: https://github.com/backblaze-b2-samples/supervision-sports-highlights
+    group: workflow
+    summary: Roboflow Inference, tracking, annotation, stage manifests, and presigned media delivery
+    description: Roboflow Inference and Supervision detect, track, clip, and annotate video while B2 stores the source, stage manifest, derived media, and presigned playback assets.
+    architectures: [roboflow-presigned-import-pipeline]
+    relevance: Computer-vision processing patterns; it is not a Roboflow Bucket Mirror example
+
+  - id: img2dataset-webdataset-object-storage
+    name: img2dataset WebDataset Object Storage
+    url: https://github.com/backblaze-b2-samples/img2dataset-webdataset-object-storage
+    group: workflow
+    summary: Large-batch image-text collection, validation, and reproducible WebDataset packaging
+    description: Image-text inputs are bulk-downloaded and written directly to reproducible WebDataset shards in B2, with download-yield validation and no local staging disk.
+    relevance: Collection, normalization, large-batch ingest, and training-format packaging
+
+  - id: webdataset-streaming-pytorch-training
+    name: WebDataset Streaming PyTorch Training
+    url: https://github.com/backblaze-b2-samples/webdataset-streaming-pytorch-training
+    group: workflow
+    summary: Manifested shards streamed directly from B2 into distributed PyTorch training
+    description: Media is packed into shards with a JSON manifest, stored in B2, and streamed directly into PyTorch with worker-aware shard allocation.
+    relevance: Release consumption, distributed training delivery, and throughput measurement
+
+  - id: duckdb-query-in-place
+    name: DuckDB Query-in-Place
+    url: https://github.com/backblaze-b2-samples/duckdb-query-in-place
+    group: workflow
+    summary: Validation and analysis of Parquet, CSV, and JSON in B2 with materialized output slices
+    description: DuckDB queries Parquet, CSV, and JSON in B2 with ranged reads and materializes selected results back to B2 as Parquet.
+    architectures: [dataloop-direct-data-pipeline, fiftyone-dataset-curation-pipeline]
+    relevance: Validation, statistics, and slice creation
+
+  - id: b2-event-broker
+    name: B2 Event Broker
+    url: https://github.com/backblaze-b2-samples/b2-event-broker
+    group: building-block
+    summary: Signed event validation, prompt acknowledgement, subscriber fan-out, and retries
+    description: Validates signed B2 Event Notifications, acknowledges promptly, and forwards events to multiple subscribers with retry handling. Useful for validation and downstream-refresh fan-out.
+
+  - id: b2-browser-upload
+    name: B2 Browser Upload
+    url: https://github.com/backblaze-b2-samples/b2-browser-upload
+    group: building-block
+    summary: Direct browser ingest with presigned S3 uploads, server-held credentials, and CORS
+    description: Direct browser upload with an S3 presigned `PutObject` URL or the B2 Native API, including CORS and the boundary that keeps application keys on the server.
+
+  - id: b2-ai-data-notebooks
+    name: B2 AI and data notebooks
+    url: https://github.com/backblaze-b2-samples/notebooks
+    group: building-block
+    summary: PyTorch, Ray Train/Tune, and Whisper notebooks reading B2-backed data
+    description: Small downstream examples for PyTorch image classification, Ray Train/Tune checkpoints, and Whisper transcription using B2-backed data.
+
+  - id: carla-sensor-data-lake
+    name: CARLA Sensor Data Lake
+    url: https://github.com/backblaze-b2-samples/carla-sensor-data-lake
+    group: domain
+    summary: Synthetic autonomous-driving sensor capture and streaming
+    description: Synthetic autonomous-driving sensor capture and streaming.
+
+  - id: rosbag2-cloud-offload
+    name: ROS 2 rosbag2 Cloud Offload
+    url: https://github.com/backblaze-b2-samples/rosbag2-cloud-offload
+    group: domain
+    summary: Robotics recording upload, Parquet cataloging, search, and presigned replay
+    description: Robotics recording upload, Parquet cataloging, search, and presigned replay.
+
+  - id: kiss-icp-lidar-archive
+    name: KISS-ICP LiDAR Archive
+    url: https://github.com/backblaze-b2-samples/kiss-icp-lidar-archive
+    group: domain
+    summary: LiDAR scan ingest, odometry, maps, poses, and trajectories
+    description: LiDAR scan ingest, odometry, maps, poses, and trajectories.
+
+  - id: totalsegmentator-batch-pipeline
+    name: TotalSegmentator Batch Pipeline
+    url: https://github.com/backblaze-b2-samples/totalsegmentator-batch-pipeline
+    group: domain
+    summary: Medical-volume ingest, anatomical segmentation masks, and volumetric statistics
+    description: Medical-volume ingest, anatomical segmentation masks, and volumetric statistics.
+
+  - id: mujoco-rollout-dataset
+    name: MuJoCo Rollout Dataset
+    url: https://github.com/backblaze-b2-samples/mujoco-rollout-dataset
+    group: domain
+    summary: Reinforcement-learning video, state, action, reward, and summary datasets
+    description: Reinforcement-learning video, state, action, reward, and summary datasets.

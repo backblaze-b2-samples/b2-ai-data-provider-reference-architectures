@@ -38,6 +38,7 @@ def cmd_ingest(a, cfg) -> int:
 def cmd_release(a, cfg) -> int:
     """Validate, upload immutable release files, then write the manifest last as commit marker."""
     src = Path(a.src)
+    storage._lock_args(a.lock_days)  # Reject invalid retention before any upload.
     m = manifest.build(src, a.dataset, a.version)
     errors = validate.validate_dataset(src, m)
     if errors:
@@ -47,6 +48,11 @@ def cmd_release(a, cfg) -> int:
     c = storage.make_client(cfg)
     storage.check_bucket(c, cfg.bucket)
     base = layout.release_prefix(a.dataset, a.version)
+    with storage.writer_lock(c, cfg.bucket, "release:" + base, timeout=0):
+        return _publish_release(a, cfg, c, src, m, base)
+
+
+def _publish_release(a, cfg, c, src, m, base) -> int:
     opts = dict(overwrite=False, lock_days=a.lock_days)
     items = [(base + f["path"], src / f["path"]) for f in m["files"]]
     print(storage.upload_tree(c, cfg.bucket, items, multipart_mb=a.multipart_mb, **opts))

@@ -1,0 +1,17 @@
+# Outbound links are this repository's main product; catch link rot without blocking pull requests.
+name: external-links
+on:
+  schedule:
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  links:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with: {python-version: "3.12"}
+      - name: Check external links (fails only on 404, 410 and DNS errors)
+        run: python tools/check_markdown_links.py --external

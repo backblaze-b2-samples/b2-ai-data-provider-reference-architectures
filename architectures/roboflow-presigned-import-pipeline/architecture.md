@@ -1,7 +1,5 @@
 # Import to a training platform via presigned URLs and return approved exports
 
-Evidence reviewed: 2026-09-29. Roboflow documents one-time or scripted ingestion from S3 through presigned URLs and its upload API. This architecture uses the same bounded transfer pattern with B2-generated S3 presigned URLs. It does not claim that Roboflow's persistent AWS Datasource or Bucket Mirror accepts a Backblaze custom endpoint.
-
 ## Workload
 
 An AI data provider keeps private computer-vision source assets in B2, selects a bounded import batch, and submits short-lived read URLs to Roboflow. Roboflow retrieves and copies those assets for annotation, preprocessing, augmentation, versioning, or training. Approved, model-independent dataset exports return to B2 for validation, immutable publication, and customer delivery.
@@ -23,14 +21,14 @@ flowchart LR
 
 The import adapter should be small and auditable. It lists only an approved prefix, generates URLs, submits them to Roboflow, waits for each result, and records the mapping from immutable B2 input identity to the Roboflow asset identity.
 
-## Why presigned import
+## Choose presigned import or a Datasource
 
-Roboflow's current AWS S3 guide distinguishes two paths:
+Roboflow connects to B2 in two ways:
 
-- persistent Datasources and Bucket Mirror for AWS S3; and
-- signed URLs or local download for one-time and scripted imports.
+- **Presigned import (this architecture).** For one-time or scripted batches, submit SigV4 presigned `GET` URLs to the Roboflow upload API. Generate them with an S3 client configured for the bucket's regional endpoint. Roboflow receives only temporary access to selected objects, never a reusable B2 application key.
+- **Datasource bucket mirroring.** For continuous sync, Roboflow [Datasources](https://docs.roboflow.com/datasets/create-and-upload/adding-data/datasources) list Backblaze B2 as an S3-compatible provider. Select S3, set the endpoint to `s3.<region>.backblazeb2.com`, set the region to the bucket region, leave path-style addressing off, and give the Datasource a read-only key scoped to the mirrored bucket and prefix.
 
-Because the persistent credential documentation is AWS-specific, use the documented signed-URL API path for B2. A B2 S3 client can generate a SigV4 presigned `GET` URL when configured with the bucket's regional endpoint. The Roboflow service receives only temporary object access, not a reusable B2 application key.
+Use presigned import when the import must be bounded to an approved batch or Roboflow must not hold a standing credential; use a Datasource when the project should track a prefix continuously.
 
 ## B2 zones
 
@@ -56,7 +54,7 @@ Freeze an import inventory before issuing URLs. At minimum, record:
 | Roboflow project and returned asset ID | Cross-system provenance |
 | Import status and attempts | Idempotent retry control |
 
-The adapter must configure its S3 client with `https://s3.<region>.backblazeb2.com`; Roboflow's AWS-oriented sample omits a custom endpoint because it targets AWS. Generate one URL per approved object and submit it before its expiry.
+Configure the adapter's S3 client with `endpoint_url=https://s3.<region>.backblazeb2.com` and the bucket region; Roboflow's sample targets AWS, so add the endpoint when adapting it. Generate one URL per approved object and submit it before its expiry.
 
 Choose a TTL that covers queueing and retrieval with a small margin, not the entire annotation project. If a URL expires before Roboflow fetches it, generate a new URL for the same immutable object and update the attempt record. Never make the source bucket public to avoid handling retries.
 
@@ -104,25 +102,21 @@ Presigned imports are well suited to bounded or scripted transfers. For large ba
 - checkpoint returned asset IDs frequently;
 - measure total copy time and account for data moving into and out of the provider.
 
-If continuous mirroring is required, run a separate product and security evaluation. Do not silently substitute Roboflow's AWS-specific Datasource configuration and label it B2-compatible.
+For continuous mirroring, switch to a Roboflow Datasource configured with the B2 endpoint and a read-only, prefix-scoped key, and record the standing credential in your processor review.
 
-## Acceptance checks
+## Deployment requirements
 
-1. Roboflow can fetch a private B2 object through a short-lived SigV4 presigned GET URL.
-2. Content type, file name, size, and image decoding survive the transfer.
-3. The adapter handles URL expiry, API throttling, duplicate requests, partial batches, and restart recovery.
-4. No logs or inventories retain Roboflow API keys or live presigned URLs.
-5. The export route returns all expected images, labels, splits, and transformation metadata.
-6. A release can be independently validated and consumed from B2 without Roboflow access.
-7. Deletion and retention operations can be reconciled across both systems.
-
-## Evidence and validation scope
-
-This architecture is documentation-reviewed. Roboflow explicitly documents signed-URL ingestion for one-time or scripted S3 imports. The repository's S3 application tests cover the general B2-compatible presigning pattern, but they do not call the Roboflow service. Production acceptance must exercise an actual Roboflow workspace with non-sensitive test media.
+1. Content type, file name, size, and image decoding survive the transfer.
+2. The adapter handles URL expiry, API throttling, duplicate requests, partial batches, and restart recovery.
+3. No logs or inventories retain Roboflow API keys or live presigned URLs.
+4. The export route returns all expected images, labels, splits, and transformation metadata.
+5. A release can be independently validated and consumed from B2 without Roboflow access.
+6. Deletion and retention operations can be reconciled across both systems.
 
 ## References
 
 - [Roboflow: upload images from an AWS S3 bucket](https://docs.roboflow.com/datasets/create-and-upload/adding-data/upload-data-from-aws-gcp-and-azure/aws-s3-bucket)
-- [Roboflow upload API reference](https://docs.roboflow.com/reference/upload-api)
-- [Backblaze B2 pre-signed URLs](https://www.backblaze.com/docs/cloud-storage-use-pre-signed-urls-with-the-s3-compatible-api)
+- [Roboflow Datasources (S3-compatible providers, including Backblaze B2)](https://docs.roboflow.com/datasets/create-and-upload/adding-data/datasources)
+- [Roboflow image upload API (Manage Images)](https://docs.roboflow.com/datasets/manage/manage-images)
+- [Backblaze B2 pre-signed URLs with the AWS CLI](https://www.backblaze.com/docs/cloud-storage-use-the-aws-cli-with-backblaze-b2)
 - [Dataset release contract](../../docs/dataset-release-contract.md)

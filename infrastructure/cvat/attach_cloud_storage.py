@@ -16,7 +16,7 @@ REQUIRED = ("CVAT_URL", "CVAT_API_TOKEN", "B2_APPLICATION_KEY_ID", "B2_APPLICATI
             "B2_BUCKET_NAME", "B2_REGION")
 
 
-def build_payload(env: dict, display_name: str, prefix: str = "", manifests=("manifest.jsonl",)) -> dict:
+def build_payload(env: dict, display_name: str, prefix: str = "", manifests=()) -> dict:
     endpoint = env.get("B2_ENDPOINT") or f"https://s3.{env['B2_REGION']}.backblazeb2.com"
     # CVAT parses specific_attributes as a URL query string (parse_qsl).
     attrs = {"endpoint_url": endpoint, "region": env["B2_REGION"]}
@@ -39,6 +39,10 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--name", required=True)
     ap.add_argument("--prefix", default="")
+    ap.add_argument(
+        "--manifest", action="append", default=[],
+        help="Full bucket-relative manifest key; repeat for multiple manifests. Omit for export storage.",
+    )
     a = ap.parse_args(argv)
     missing = [n for n in REQUIRED if not os.environ.get(n)]
     if missing:
@@ -46,7 +50,7 @@ def main(argv=None) -> int:
         return 1
     req = urllib.request.Request(
         os.environ["CVAT_URL"].rstrip("/") + "/api/cloudstorages",
-        data=json.dumps(build_payload(os.environ, a.name, a.prefix)).encode(),
+        data=json.dumps(build_payload(os.environ, a.name, a.prefix, a.manifest)).encode(),
         headers={"Content-Type": "application/json",
                  "Authorization": f"Bearer {os.environ['CVAT_API_TOKEN']}"},
     )

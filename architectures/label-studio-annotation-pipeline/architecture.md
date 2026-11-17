@@ -1,7 +1,5 @@
 # Annotate multimodal data with separate source and target storage
 
-Evidence reviewed: 2026-09-29. This design is based on Label Studio's source/target storage documentation, its boto3 custom-endpoint implementation, and current Backblaze B2 documentation. Deployment-specific permissions, CORS, and network controls must be tested in the target environment.
-
 ## Workload
 
 An AI data provider places images, video, audio, text, or JSON task definitions in Backblaze B2. Label Studio syncs that source storage into an annotation project and writes completed annotations to a target prefix. A validator turns approved exports into immutable, checksummed dataset releases for customer delivery.
@@ -97,13 +95,6 @@ Use the shared [dataset release contract](../../docs/dataset-release-contract.md
 ## Boundaries
 
 Do not use B2 dataset buckets for Label Studio's relational database, queues, low-latency cache, or container filesystem. Do not treat Cloud Replication as customer delivery. B2 supplies durable objects; Label Studio and the validator supply annotation state, workflow, quality gates and compute.
-
-## Evidence and validation scope
-
-- Label Studio documentation describes source and target Amazon S3 storage, custom S3 endpoints, presigned URLs, proxy delivery, CORS, and API-driven sync.
-- Label Studio source constructs boto3 S3 clients and resources with the configured `endpoint_url` and SigV4.
-- B2 application-key capabilities and bucket controls are mapped from the S3 operations used by the integration.
-- The target deployment must confirm its exact Label Studio edition/version, bucket region, CORS origin, import mode, endpoint reachability and least-privilege capabilities.
 
 ## References
 

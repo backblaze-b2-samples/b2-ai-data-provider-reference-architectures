@@ -10,6 +10,11 @@ BUCKET = "test-cvat-b2-bucket"
 SECRET = "SUPERSECRETKEYVALUE123"
 
 
+@pytest.fixture(autouse=True)
+def isolated_writer_locks(tmp_path, monkeypatch):
+    monkeypatch.setenv("CVAT_B2_LOCK_DIR", str(tmp_path / "publisher-locks"))
+
+
 @pytest.fixture
 def cfg():
     return Config(key_id="keyid123", key=SECRET, bucket=BUCKET, region="us-east-1",
@@ -25,6 +30,14 @@ def s3(cfg, monkeypatch):
                               config=BotoConfig(signature_version="s3v4"))
         client.create_bucket(Bucket=BUCKET)
         monkeypatch.setattr(storage, "make_client", lambda _cfg: client)
+        # moto's retention writes update its object state; model the missing GET API from that state.
+        def get_retention(**params):
+            head = client.head_object(**params)
+            if "ObjectLockMode" not in head:
+                return {"Retention": {}}
+            return {"Retention": {"Mode": head["ObjectLockMode"],
+                                  "RetainUntilDate": head["ObjectLockRetainUntilDate"]}}
+        monkeypatch.setattr(client, "get_object_retention", get_retention)
         yield client
 
 

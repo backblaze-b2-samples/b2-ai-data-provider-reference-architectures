@@ -2,6 +2,7 @@
 """Validate catalog, manifest examples, schemas, and generated sample metadata."""
 from __future__ import annotations
 
+import hashlib
 import json
 import sys
 from pathlib import Path
@@ -42,6 +43,20 @@ def main() -> int:
     generated = manifest.build(ROOT / "testdata" / "synthetic-toy", "synthetic-toy", "v1")
     generated["quality"]["status"] = "passed"
     assert generated == release, "release-manifest.example.json is stale"
+
+    multimodal = load_json("manifests/release-manifest.multimodal.example.json")
+    validate(multimodal, "schemas/release-manifest.schema.json")
+    fixture_root = ROOT / "testdata" / "multimodal-toy"
+    for item in multimodal["files"]:
+        content = (fixture_root / item["path"]).read_bytes()
+        assert len(content) == item["size"]
+        assert hashlib.sha256(content).hexdigest() == item["sha256"]
+    assert multimodal["statistics"]["file_count"] == len(multimodal["files"])
+    assert multimodal["statistics"]["total_bytes"] == sum(item["size"] for item in multimodal["files"])
+    fingerprint = hashlib.sha256("".join(
+        f"{item['path']}:{item['sha256']}\n" for item in multimodal["files"]
+    ).encode()).hexdigest()
+    assert multimodal["fingerprint"] == multimodal["integrity"]["content_fingerprint"] == fingerprint
 
     delivery = load_json("manifests/delivery-manifest.example.json")
     validate(delivery, "schemas/delivery-manifest.schema.json")

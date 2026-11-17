@@ -7,7 +7,7 @@ license = {text = "MIT"}
 authors = [{name = "Backblaze, Inc."}]
 keywords = ["ai-datasets", "backblaze-b2", "cvat", "data-annotation", "s3-compatible"]
 requires-python = ">=3.10"
-dependencies = ["boto3>=1.36", "Pillow>=10", "python-dotenv>=1.0"]
+dependencies = ["boto3>=1.36", "Pillow>=10", "python-dotenv>=1.0", "filelock>=3.13", "jsonschema>=4.23"]
 
 [project.urls]
 Documentation = "https://www.backblaze.com/docs/cloud-storage-ai-machine-learning"
@@ -18,6 +18,9 @@ cvat-b2 = "cvat_b2_pipeline.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+cvat_b2_pipeline = ["schemas/*.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

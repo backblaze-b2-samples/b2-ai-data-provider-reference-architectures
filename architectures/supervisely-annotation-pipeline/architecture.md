@@ -1,7 +1,5 @@
 # Transform and annotate remote media, then release immutable datasets
 
-Evidence reviewed: 2026-09-29. Supervisely documents support for any S3-compatible remote storage, configurable endpoints, cloud imports, remote links, and S3-compatible exports. This design maps those documented controls to B2; deployment-specific addressing, credentials, media loading, and write behavior still require acceptance testing.
-
 ## Workload
 
 An AI data provider stores large image and video collections in B2, uses Supervisely for annotation, review, transformation, and application workflows, then returns approved exports and quality evidence to B2. A separate publisher creates immutable customer releases.
@@ -46,19 +44,32 @@ If Supervisely itself uses B2 as instance-wide remote storage, its managed publi
 
 ## Configure S3-compatible storage
 
-For instance-wide S3-compatible remote storage, Supervisely documents the `minio` provider with an endpoint, port, access key, and secret key. The B2 mapping is:
+For instance-wide remote storage, Supervisely uses its `minio` provider for any S3-compatible backend. Set these values in the instance `.env` and apply them with `sudo supervisely up -d`:
 
 | Supervisely setting | B2 value |
 |---|---|
-| `STORAGE_PROVIDER` | `minio` for the documented S3-compatible path |
+| `STORAGE_PROVIDER` | `minio` |
 | `STORAGE_ENDPOINT` | `s3.<region>.backblazeb2.com` derived from the bucket region |
 | `STORAGE_PORT` | `443` |
 | `STORAGE_ACCESS_KEY` | B2 application key ID |
 | `STORAGE_SECRET_KEY` | B2 application key |
 
-Use the corresponding endpoint field when configuring team cloud storage or a remote-link provider. Confirm the exact field format in the deployed Supervisely release; instance environment variables may expect a hostname while UI or YAML fields may expect a full URL.
+For remote links, add a B2 entry to the Links plugin configuration file and reference objects as `s3://<bucket>/<key>`:
 
-For files larger than 4 GB, Supervisely calls out multipart permissions in its S3 guidance. Exercise large upload initiation, part upload, completion, abort, and retry behavior against B2 during acceptance testing.
+```yaml
+b2-raw-media:
+  provider: minio
+  endpoint: s3.<region>.backblazeb2.com
+  access_key: <B2 application key ID>
+  secret_key: <B2 application key>
+  region: <bucket region>
+  buckets:
+    - <org>-supervisely-raw
+```
+
+Use the same hostname (no scheme) and bucket region when configuring team cloud storage in the UI.
+
+For files larger than 4 GB, Supervisely uses multipart upload. On B2, the `writeFiles` capability covers multipart initiation, part upload, completion, and listing in-progress uploads; add a lifecycle rule that cancels unfinished large files so aborted uploads do not accumulate.
 
 ## Existing B2 media
 
@@ -66,7 +77,7 @@ For an existing private B2 collection:
 
 1. Create a source-reader key restricted to the raw bucket and selected prefix.
 2. Configure the team cloud provider or remote-links configuration with the B2 endpoint and credentials.
-3. Import a small inventory and verify whether the selected flow links or copies each asset.
+3. Import a small inventory and record whether the selected flow links or copies each asset.
 4. Confirm browser and server media access, thumbnails, video seeking, and cache behavior.
 5. Record stable B2 keys and checksums as provenance; do not store expiring presigned URLs as permanent asset identifiers.
 
@@ -107,21 +118,13 @@ Instance-wide remote storage may need broader permissions over the buckets Super
 
 Keep Supervisely's database, queues, application state, container volumes, and low-latency caches off dataset buckets. B2 is appropriate for durable media, exported artifacts, and immutable releases, not transactional state or compute scratch storage.
 
-## Acceptance checks
+## Deployment requirements
 
-Test the chosen mode on the exact Supervisely release:
-
-1. Endpoint parsing, TLS, SigV4 signing, region, and bucket addressing work with B2.
-2. Prefix-scoped listing and object reads work for private source media.
-3. Remote links do not unexpectedly copy full source objects.
-4. Import, thumbnail generation, image display, video seeking, and application reads meet latency requirements.
-5. S3-compatible export writes only to the intended work prefix and supports representative large files.
-6. Credential rotation and failed multipart cleanup behave safely.
-7. Deleting a project does not remove governed B2 source objects unless that behavior is explicitly intended and tested.
-
-## Evidence and validation scope
-
-This architecture is documentation-reviewed. Supervisely explicitly documents arbitrary S3-compatible storage and configurable endpoints. Production readiness depends on validating the selected Supervisely mode and release against a B2 test bucket with representative media.
+1. Remote links reference source objects without copying them in full.
+2. Import, thumbnail generation, image display, video seeking, and application reads meet latency requirements.
+3. S3-compatible export writes only to the intended work prefix and handles representative large files.
+4. Credential rotation and failed multipart cleanup behave safely.
+5. Deleting a project does not remove governed B2 source objects unless that behavior is explicitly intended.
 
 ## References
 

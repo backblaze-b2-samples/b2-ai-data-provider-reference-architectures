@@ -1,7 +1,5 @@
 # Curate datasets and publish quality evidence with each release
 
-Evidence reviewed: 2026-09-29. FiftyOne Enterprise documents cloud-backed media, managed cloud credentials, and a MinIO-compatible configuration with a custom `endpoint_url`. This architecture treats that path as a B2 integration candidate and requires the exact addressing and media operations to pass the acceptance checks below.
-
 ## Workload
 
 An AI data provider stores source media in B2 and uses FiftyOne to explore the collection, calculate embeddings, find duplicates, evaluate model outputs, inspect failure slices, and select a higher-quality dataset. Selected media references, labels, reports, and provenance are exported to B2, validated, and published as an immutable release.
@@ -35,9 +33,9 @@ The release should capture the selection view or rule, dataset identity, model a
 
 Use a manifest or inventory to bind each FiftyOne sample to a stable B2 object key plus a version or checksum. Avoid making a mutable object URL the only identity for a sample.
 
-## Candidate custom-endpoint connection
+## Connect FiftyOne to B2
 
-FiftyOne Enterprise's installation documentation describes a MinIO credential profile with an `endpoint_url`, access key, secret key, optional alias, and region. The candidate B2 profile follows that documented shape:
+FiftyOne Enterprise reaches S3-compatible storage through its MinIO credential profile, which takes an `endpoint_url`, access key, secret key, optional alias, and region ([cloud credentials](https://docs.voxel51.com/enterprise/installation.html#enterprise-cloud-credentials)). Point that profile at B2:
 
 ```ini
 [default]
@@ -48,21 +46,20 @@ alias = b2
 region = <bucket region>
 ```
 
-Use secrets management or FiftyOne's managed cloud-credential controls rather than committing this file. Scope the credential to the intended bucket and, where the deployed integration honors it, the narrowest source prefix.
+Configure it per session with `MINIO_CONFIG_FILE` (and optionally `MINIO_PROFILE`), or register it permanently with `minio_config_file` in the media cache config. Store the file in secrets management or use FiftyOne's managed cloud-credential controls rather than committing it. Scope the B2 application key to the intended bucket and the narrowest source prefix.
 
-The documented provider path is named for MinIO, not B2. Do not publish a definitive configuration recipe until the deployed FiftyOne version confirms:
+Configure the connection with these settings:
 
-- whether samples use endpoint-based HTTPS paths, an alias scheme, or another canonical path;
-- whether the App, SDK, delegated operators, and media cache all route the same path through the custom credential;
-- whether virtual-hosted or path-style bucket addressing is required;
-- whether ranged reads, video seeking, signed browser access, and content types work as expected.
+- Derive `endpoint_url` and `region` from the bucket region shown in the B2 console; do not hardcode a region.
+- Write sample filepaths in one canonical form, either `b2://<bucket>/<key>` through the alias or `https://s3.<region>.backblazeb2.com/<bucket>/<key>`, and use the same form in the App, SDK, delegated operators, and media cache.
+- Grant the media-reader key `listFiles,readFiles` on the source prefix only.
 
 Public buckets are not needed. Do not store expiring presigned URLs as durable sample paths because they will fail after expiry and make dataset state time-dependent.
 
 ## Curation and publication
 
 1. Create a stable source inventory containing B2 key, object version when available, size, media type, and checksum.
-2. Populate a FiftyOne dataset whose filepaths resolve through the tested B2 cloud-media configuration.
+2. Populate a FiftyOne dataset whose filepaths resolve through the B2 cloud-media configuration.
 3. Import ground truth, model predictions, and relevant sample metadata.
 4. Run embeddings, similarity, uniqueness, duplicate detection, evaluations, and human review on external compute.
 5. Save the selection criteria and export selected sample identities, labels, metrics, failure slices, and quality reports to the work zone.
@@ -108,19 +105,12 @@ Use Standard B2 by default. Consider compute-local caching for repeated analysis
 
 Do not place FiftyOne's database, indexes, sessions, compute scratch data, or low-latency cache inside B2 dataset prefixes. Store durable exports and releases in B2; use application-appropriate storage for interactive state.
 
-## Acceptance checks
+## Deployment requirements
 
-1. The custom endpoint and credential profile can list and read a prefix-scoped private B2 collection.
-2. The App, SDK, and selected delegated operators resolve the same media paths.
-3. Images, thumbnails, video range reads, and media metadata work without public access.
-4. Credential scoping and rotation behave correctly for users, groups, and services.
-5. Cached content is invalidated or keyed by immutable object identity.
-6. Curation exports are deterministic enough to reproduce a release from its input inventory and configuration.
-7. Representative scans, embeddings, and interactive review meet performance objectives.
-
-## Evidence and validation scope
-
-This architecture is documentation-reviewed. FiftyOne documents custom endpoint configuration for its MinIO-compatible cloud-media path, but its documentation does not name Backblaze B2. The repository therefore records a credible integration path and explicit acceptance contract rather than claiming a completed B2 deployment.
+1. Credential scoping and rotation behave correctly for users, groups, and services.
+2. Cached content is invalidated or keyed by immutable object identity.
+3. Curation exports are deterministic enough to reproduce a release from its input inventory and configuration.
+4. Representative scans, embeddings, and interactive review meet performance objectives.
 
 ## References
 

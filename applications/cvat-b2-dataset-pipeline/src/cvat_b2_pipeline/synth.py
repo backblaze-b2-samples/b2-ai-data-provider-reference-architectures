@@ -132,7 +132,7 @@ def generate(out: Path, count: int, seed: int = 0) -> None:
         images.append({"id": i, "file_name": f"{name}.png", "width": SIZE[0], "height": SIZE[1]})
         # Fields follow CVAT's dataset_manifest images format (checksum is optional).
         manifest.append(json.dumps(
-            {"name": name, "extension": ".png", "width": SIZE[0], "height": SIZE[1]},
+            {"name": f"images/{name}", "extension": ".png", "width": SIZE[0], "height": SIZE[1]},
             separators=(",", ":"),
         ))
     coco = {"info": {"description": "synthetic"}, "categories": CATEGORIES,

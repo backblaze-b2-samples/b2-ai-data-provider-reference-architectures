@@ -1,0 +1,50 @@
+{
+  "schema_version": "2.0.0",
+  "id": "multimodal-toy@v1",
+  "dataset": "multimodal-toy",
+  "version": "v1",
+  "annotation_format": "none",
+  "modalities": [
+    "text",
+    "tabular"
+  ],
+  "license": "MIT",
+  "provenance": {
+    "source_type": "synthetic",
+    "generated_by": "reference-architecture-example",
+    "inputs": []
+  },
+  "quality": {
+    "status": "passed",
+    "validator": "tools/validate_contracts.py",
+    "checks": [
+      "schema",
+      "file-size",
+      "sha256",
+      "content-fingerprint"
+    ]
+  },
+  "statistics": {
+    "file_count": 2,
+    "total_bytes": 101
+  },
+  "integrity": {
+    "algorithm": "sha256",
+    "content_fingerprint": "93bdc03fed1b4d79f045320903a65ca313b33162f4ae4f30f983a44d7bf977cc"
+  },
+  "fingerprint": "93bdc03fed1b4d79f045320903a65ca313b33162f4ae4f30f983a44d7bf977cc",
+  "files": [
+    {
+      "path": "data/measurements.csv",
+      "size": 59,
+      "sha256": "bf85c2ef57937db6de1af1c1df0d0f4afd10a02051ef4cd425b75de27f754a1e",
+      "encoding_format": "text/csv"
+    },
+    {
+      "path": "data/transcript.txt",
+      "size": 42,
+      "sha256": "b64ca2bf11d055334acac3cb80dcf5cb45402f6ded5d62173fa23ddd8af280bf",
+      "encoding_format": "text/plain"
+    }
+  ]
+}

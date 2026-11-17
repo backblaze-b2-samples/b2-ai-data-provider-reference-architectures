@@ -77,7 +77,12 @@
         "additionalProperties": false,
         "required": ["path", "size", "sha256", "encoding_format"],
         "properties": {
-          "path": {"type": "string", "pattern": "^((images|annotations)/[^/].*|README\\.md|croissant\\.json)$"},
+          "path": {
+            "type": "string",
+            "description": "Safe release-relative path. Use data/ for any modality; images/ and annotations/ remain supported.",
+            "pattern": "^(?:(?:images|annotations|data)/[^/\\\\]+(?:/[^/\\\\]+)*|README\\.md|croissant\\.json)$",
+            "not": {"pattern": "(^|/)\\.{1,2}(/|$)|[\\u0000-\\u001f\\u007f]"}
+          },
           "size": {"type": "integer", "minimum": 1},
           "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
           "encoding_format": {"type": "string", "minLength": 1}

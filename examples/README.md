@@ -1,8 +1,13 @@
 # B2 configuration examples
 
-Templates for the buckets in [cvat-annotation-pipeline](../architectures/cvat-annotation-pipeline/architecture.md).
-Placeholders are in `<angle brackets>`. Apply with the B2 CLI (`b2` v4.4.1 flags checked with `--help`; JSON shapes
-checked against the [B2 API docs](https://www.backblaze.com/apidocs) on 2026-09-29). These are templates: review placeholders, capabilities, retention periods and deletion behavior before applying them to an account.
+Configuration templates for the buckets in these [reference architectures](../docs/architecture-index.md). Run command blocks from this repository's `examples/` directory using Bash and the B2 CLI v4. Authenticate the CLI with a provisioning credential before creating buckets or application keys. Configuration fields are documented in the [B2 API reference](https://www.backblaze.com/apidocs).
+
+Set `ORG` to a globally unique bucket-name prefix. Set the additional variables used by the selected command block, and replace values shown in `<angle brackets>` before running it. Choose retention periods, lifecycle settings, and application-key capabilities for the workload; lifecycle rules permanently delete expired object versions.
+
+| Variable | Purpose |
+|---|---|
+| `ORG` | Globally unique bucket-name prefix. |
+| `DATASET` | Dataset identifier used to scope dataset prefixes. |
 
 | File | Applies to | Purpose |
 |---|---|---|
@@ -37,12 +42,14 @@ b2 bucket update --replication "$(cat replication.json)" "$ORG-cvat-releases"
 
 ## Scoped application keys (one bucket + one prefix per key)
 
+Connection roles include `listBuckets` for `HeadBucket`; file access remains restricted by the bucket and prefix. `listAllBucketNames` is needed only when a tool enumerates all buckets.
+
 ```bash
-b2 key create --bucket "$ORG-cvat-raw"      --name-prefix raw/     ingest-writer      listFiles,writeFiles
-b2 key create --bucket "$ORG-cvat-raw"      --name-prefix raw/     cvat-source-reader listFiles,readFiles
-b2 key create --bucket "$ORG-cvat-work"     --name-prefix exports/ cvat-export-writer listFiles,readFiles,writeFiles
+b2 key create --bucket "$ORG-cvat-raw"      --name-prefix raw/     ingest-writer      listBuckets,listFiles,writeFiles,readFiles
+b2 key create --bucket "$ORG-cvat-raw"      --name-prefix raw/     cvat-source-reader listBuckets,listFiles,readFiles
+b2 key create --bucket "$ORG-cvat-work"     --name-prefix exports/ cvat-export-writer listBuckets,listFiles,readFiles,writeFiles
 b2 key create --bucket "$ORG-cvat-work"     --name-prefix exports/ validator-reader   listFiles,readFiles
-b2 key create --bucket "$ORG-cvat-releases" --name-prefix releases/ publisher         listFiles,readFiles,writeFiles,writeFileRetentions
+b2 key create --bucket "$ORG-cvat-releases" --name-prefix releases/ publisher         listBuckets,listFiles,readFiles,writeFiles,writeFileRetentions,readFileRetentions
 b2 key create --bucket "$ORG-cvat-releases" --name-prefix "releases/$DATASET/" --duration 86400 delivery-signer listFiles,readFiles
 ```
 

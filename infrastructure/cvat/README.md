@@ -2,20 +2,28 @@
 
 Backblaze guide: [Connect B2 to CVAT](https://www.backblaze.com/docs/en/cloud-storage-connect-backblaze-b2-cloud-storage-to-cvat).
 
-No compose fork is kept here: run upstream CVAT and attach B2 through its API, so the repo does not drift from CVAT releases.
+Run upstream CVAT and attach B2 through its cloud-storage API.
 
-1. Deploy CVAT from a released tag using its own `docker-compose.yml` ([CVAT install docs](https://docs.cvat.ai/docs/administration/basics/installation/)). Pin and acceptance-test the version used by your environment.
+1. Deploy CVAT from a pinned release using its own `docker-compose.yml` ([CVAT install docs](https://docs.cvat.ai/docs/administration/basics/installation/)).
 2. Create a CVAT Personal Access Token ([docs](https://docs.cvat.ai/docs/api_sdk/access_tokens/)).
-3. Create scoped B2 keys ([examples](../../examples/README.md)) and copy `.env.example` to `.env` (`chmod 600`).
-4. Attach the storage. Source storage, prefix limited to one batch:
+3. Create scoped B2 keys ([examples](../../examples/README.md)). Include `listBuckets` for CVAT's bucket check. Copy `.env.example` to `source.env` and `target.env`, set each file's mode to `0600`, and configure the source-reader and export-writer credentials and bucket respectively.
+4. From this directory, attach source storage for the batch uploaded by `cvat-b2 ingest`:
 
 ```bash
-set -a; . ./.env; set +a
-python attach_cloud_storage.py --name b2-raw-batch1 --prefix raw/batch1/
-python attach_cloud_storage.py --name b2-exports --prefix exports/   # run with the export-writer key
+set -a; . ./source.env; set +a
+python attach_cloud_storage.py --name b2-raw-batch1 --prefix raw/batch1/ \
+  --manifest raw/batch1/manifest.jsonl
 ```
 
-Use a different `.env` (different key) per storage: source uses the read-only key, target the export-writer key.
-Then choose these storages as source/target in the CVAT task and export dialogs.
+Manifest arguments are complete bucket-relative keys; `--prefix` filters listings and does not rebase them. Repeat `--manifest` for additional manifests. Image names inside the manifest are relative to its directory, for example `images/img_0001.png`.
+
+5. Attach export storage without a manifest:
+
+```bash
+set -a; . ./target.env; set +a
+python attach_cloud_storage.py --name b2-exports --prefix exports/
+```
+
+Choose these storages as source and target in the CVAT task and export dialogs. The environment files are gitignored; keep a separate scoped key for each storage.
 
 Test: `python -m pytest` in this folder.

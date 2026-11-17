@@ -1,7 +1,5 @@
 # Process datasets in place and publish governed releases
 
-Evidence reviewed: 2026-09-29. This design maps Dataloop DDOE's documented generic S3 API integration and direct-data model to the Backblaze B2 S3-compatible endpoint. The documentation presents the connector under DDOE's on-premises provider category, so the target DDOE release must pass the acceptance checks below before production use.
-
 ## Workload
 
 An AI data provider keeps source media and documents in B2, synchronizes selected prefixes into Dataloop DDOE, and runs preprocessing, annotation, enrichment, applications, or pipelines on a connected compute cluster. Approved outputs return to B2 and are promoted into immutable, customer-deliverable dataset releases.
@@ -37,20 +35,20 @@ Use separate buckets when raw data, platform-generated work, and releases requir
 
 ## Configure the DDOE storage integration
 
-The current DDOE S3 API guide documents an access key, secret key, endpoint URL, and region for an S3-compatible storage integration. Map the form as follows:
+The DDOE S3 API integration takes an access key, secret key, endpoint URL, and region. Configure it for B2 as follows:
 
 | DDOE field | B2 value |
 |---|---|
-| Provider | `On-Prem` in the currently documented DDOE workflow |
+| Provider | `On-Prem` |
 | Integration type | `S3 API` |
 | Access Key ID | B2 application key ID |
 | Secret Access Key | B2 application key |
 | Endpoint URL | `https://s3.<region>.backblazeb2.com` derived from the bucket region |
 | Region | The B2 bucket region |
 
-Create the integration, attach it to the intended compute cluster, create a storage driver for the selected bucket or prefix, and synchronize a small dataset before granting access to production data.
+Create the integration, attach it to the intended compute cluster, create a storage driver for the selected bucket or prefix, and synchronize a small dataset first to confirm prefix scoping and generated-file placement.
 
-The DDOE UI classification does not change where B2 is hosted; it identifies the generic endpoint-based connector rather than the AWS-specific IAM connectors. Confirm that the deployed DDOE version accepts a public HTTPS endpoint in this path and does not impose an allowlist intended only for private addresses.
+The `On-Prem` provider label selects DDOE's generic endpoint-based S3 connector rather than its AWS IAM connectors; it does not change where B2 is hosted. Allow egress and DNS from the DDOE streamer and compute services to the regional B2 HTTPS endpoint.
 
 ## Credential and write model
 
@@ -89,21 +87,12 @@ Do not give the DDOE runtime the release publisher credential. A separate valida
 
 DDOE databases, queues, Kubernetes volumes, application state, and low-latency compute scratch data belong on platform-appropriate storage. B2 holds durable objects and releases; it is not a POSIX volume or a compute service.
 
-## Acceptance checks
+## Deployment requirements
 
-Before production use, test the exact DDOE release and deployment:
-
-1. The generic connector can reach the regional B2 HTTPS endpoint.
-2. Bucket listing and object reads work with a prefix-scoped B2 application key.
-3. Addressing, SigV4 signing, region, pagination, ranged reads, and multipart behavior match the workload.
-4. Generated thumbnails or hidden platform files land only in the intended writable prefix.
-5. Deletion and upstream synchronization cannot remove governed source or release objects unexpectedly.
-6. Representative media sizes and parallel workers meet preview and processing latency targets.
-7. Credential rotation, audit logging, and failure recovery work without resynchronizing the entire collection.
-
-## Evidence and validation scope
-
-This architecture is documentation-reviewed. DDOE's documentation explicitly describes an endpoint-configurable S3-compatible connector and a direct-data flow, while B2's documentation supplies the endpoint and credential model. The repository does not claim an environment-tested DDOE-to-B2 deployment until the acceptance checks are completed and recorded.
+1. Generated thumbnails or hidden platform files land only in the intended writable prefix.
+2. Deletion and upstream synchronization cannot remove governed source or release objects unexpectedly.
+3. Representative media sizes and parallel workers meet preview and processing latency targets.
+4. Credential rotation, audit logging, and failure recovery work without resynchronizing the entire collection.
 
 ## References
 

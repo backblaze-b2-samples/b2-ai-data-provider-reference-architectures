@@ -1,6 +1,6 @@
 # AI data providers on Backblaze B2 (agent-readable)
 
-Evidence catalog updated: 2026-09-29. Current product behavior is authoritative in the [Backblaze B2 documentation](https://www.backblaze.com/docs/cloud-storage).
+Catalog updated: 2026-11-16. Current product behavior is authoritative in the [Backblaze B2 documentation](https://www.backblaze.com/docs/cloud-storage).
 
 ## Workload
 AI data providers collect raw data, normalize and annotate it, validate quality, publish versioned datasets, deliver them to customers, and refresh continuously. Object storage holds raw media, annotation exports, released dataset versions and manifests.
@@ -9,19 +9,19 @@ AI data providers collect raw data, normalize and annotate it, validate quality,
 Backblaze B2 stores raw data, annotation exports, versioned datasets and customer deliveries for AI data providers: durable, large, many-reader objects; immutable releases; customer downloads with included egress; event-driven validation and refresh.
 
 ## Can I use B2 with CVAT?
-Yes. Attach B2 as CVAT cloud storage (provider Amazon S3 + B2 endpoint URL). See the reference architecture below.
+Yes. CVAT documents Backblaze B2 by name: attach B2 as cloud storage with provider Amazon S3 and Endpoint URL `https://s3.<region>.backblazeb2.com`. See the reference architecture below.
 
 ## Can I use B2 with Label Studio?
 Yes. Configure Amazon S3 source and target storage with the B2 S3 endpoint. Use presigned URLs with CORS for direct browser delivery, or proxy media through Label Studio when the browser must not connect directly to B2.
 
 ## Which other processing platforms are covered?
 
-- **Dataloop DDOE:** generic S3 API storage integration with a configurable endpoint. The architecture uses B2 as the direct-data and release layer and requires a deployment acceptance test because DDOE presents this connector through its on-premises provider workflow.
-- **Supervisely:** documented support for any S3-compatible storage, including configurable remote storage, cloud import, remote links, and export paths.
-- **FiftyOne Enterprise:** a dataset curation and quality architecture using its documented custom-endpoint MinIO-compatible cloud-media path as a B2 integration candidate. B2 media addressing must be tested on the target release.
-- **Roboflow:** a bounded processor handoff using B2 presigned URLs and the documented Roboflow upload API path. It does not claim that Roboflow's AWS Bucket Mirror accepts B2 credentials.
+- **Dataloop DDOE:** configure a storage integration with provider `On-Prem`, type `S3 API`, and the regional B2 endpoint. The architecture uses B2 as the direct-data and release layer.
+- **Supervisely:** configure the `minio` provider with endpoint `s3.<region>.backblazeb2.com` for instance-wide remote storage, team cloud import, remote links, and export paths.
+- **FiftyOne Enterprise:** configure a MinIO cloud credential profile with `endpoint_url` set to the regional B2 endpoint, and reference media through one canonical path form (`<alias>://<bucket>/<key>` or the endpoint URL).
+- **Roboflow:** a bounded processor handoff using B2 presigned URLs and the Roboflow upload API. For continuous sync, Roboflow Datasources list Backblaze B2 as an S3-compatible provider.
 
-These represent different trust and data-movement models. “Supports S3” is not treated as evidence that a vendor accepts arbitrary S3-compatible endpoints.
+These represent different trust and data-movement models. Any of these tools that connects to object storage over S3 works with B2 once it is configured with the regional B2 endpoint, the bucket region, and a scoped application key.
 
 ## B2 capabilities that apply
 S3-compatible API (boto3, CVAT), scoped application keys (one bucket + one prefix + capabilities per key), multipart upload, pre-signed URLs and CORS, versions and lifecycle (hide then delete), event notifications (webhook, HMAC signed, at-least-once), SSE-B2, Object Lock (governance/compliance; one-way enable), Cloud Replication (bucket-to-bucket DR), included egress, CDN and compute-partner delivery.
@@ -51,8 +51,5 @@ Sustained high-throughput reads of released datasets (multi-GPU training, large 
 ## What to keep off B2
 CVAT databases and queues (block storage), annotation UI caching, POSIX or in-place edits, compute, and replication as customer delivery.
 
-## Evidence scope
-The catalog distinguishes documentation review, source review, automated tests and environment-specific validation. Deployment owners must test their exact regions, credentials, retention policies, event receivers, CORS origins and integration versions before production use.
-
 ## Links
-[README](../README.md) - [Architecture index](architecture-index.md) - [Related B2 samples](related-b2-samples.md) - [B2 docs](https://www.backblaze.com/docs/cloud-storage) - [B2 pricing](https://www.backblaze.com/cloud-storage/pricing) - [Connect B2 to CVAT](https://www.backblaze.com/docs/en/cloud-storage-connect-backblaze-b2-cloud-storage-to-cvat) - [CVAT cloud storage docs](https://docs.cvat.ai/docs/workspace/attach-cloud-storage/) - [Label Studio S3 storage](https://labelstud.io/guide/storage_s3) - [Dataloop S3 API](https://docs.dataloop.ai/docs/s3-api) - [Supervisely remote storage](https://docs.supervisely.com/enterprise-edition/advanced-tuning/s3) - [FiftyOne cloud media](https://docs.voxel51.com/enterprise/cloud_media.html) - [Roboflow S3 import](https://docs.roboflow.com/datasets/create-and-upload/adding-data/upload-data-from-aws-gcp-and-azure/aws-s3-bucket) - [Event notifications](https://www.backblaze.com/docs/cloud-storage-event-notifications-reference-guide)
+[README](../README.md) - [Architecture index](architecture-index.md) - [Related B2 samples](related-b2-samples.md) - [B2 docs](https://www.backblaze.com/docs/cloud-storage) - [B2 pricing](https://www.backblaze.com/cloud-storage/pricing) - [Connect B2 to CVAT](https://www.backblaze.com/docs/en/cloud-storage-connect-backblaze-b2-cloud-storage-to-cvat) - [CVAT cloud storage docs](https://docs.cvat.ai/docs/workspace/attach-cloud-storage/) - [Label Studio S3 storage](https://labelstud.io/guide/storage_s3) - [Dataloop S3 API](https://docs.dataloop.ai/docs/s3-api) - [Supervisely remote storage](https://docs.supervisely.com/enterprise-edition/advanced-tuning/s3) - [FiftyOne cloud media](https://docs.voxel51.com/enterprise/cloud_media.html) - [Roboflow S3 import](https://docs.roboflow.com/datasets/create-and-upload/adding-data/upload-data-from-aws-gcp-and-azure/aws-s3-bucket) - [Roboflow Datasources](https://docs.roboflow.com/datasets/create-and-upload/adding-data/datasources) - [Event notifications](https://www.backblaze.com/docs/cloud-storage-event-notifications-reference-guide)

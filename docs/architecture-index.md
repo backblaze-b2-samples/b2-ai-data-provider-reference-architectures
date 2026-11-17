@@ -3,7 +3,7 @@
 
 Canonical B2 product documentation: <https://www.backblaze.com/docs/cloud-storage-ai-machine-learning>.
 
-Use this index to choose a workflow. Each linked architecture states its evidence basis and security boundaries. All workflows use the shared [dataset release contract](dataset-release-contract.md).
+Use this index to choose a workflow. Each linked architecture documents its data flow, B2 zones and security boundaries. All workflows use the shared [dataset release contract](dataset-release-contract.md).
 
 ## [Annotate images and video, then publish versioned datasets](../architectures/cvat-annotation-pipeline/architecture.md)
 
@@ -11,7 +11,7 @@ Collect images, annotate in CVAT, validate COCO exports, publish immutable datas
 
 - **Audience:** AI data provider platform engineers, Computer vision data operations teams, Security and storage architects
 - **Problem:** Keep large source media and customer-ready dataset releases durable and independently scalable while CVAT retains transactional annotation state on block storage.
-- **Workflow:** Collect raw media into a source bucket → Attach B2 to CVAT through its Amazon S3 provider and custom endpoint → Export annotations into a work bucket → Validate schema, label bounds, coverage, and checksums → Publish an immutable version and write its release manifest last → Deliver with short-lived presigned URLs and trigger downstream refresh
+- **Workflow:** Collect raw media into a source bucket → Attach B2 to CVAT through its Amazon S3 provider and custom endpoint → Export annotations into a work bucket → Validate schema, label bounds, coverage, and checksums → Serialize publication per dataset/version, verify requested retention on all object versions, and write the release manifest last → Deliver with short-lived presigned URLs and trigger downstream refresh
 - **Expected scale:** Large image and video collections with many sequential object reads and writes. Standard B2 is the default; measure sustained multi-GPU or parallel refresh throughput before considering Overdrive or a compute-local cache.
 
 ## [Annotate multimodal data with separate source and target storage](../architectures/label-studio-annotation-pipeline/architecture.md)
@@ -39,7 +39,7 @@ Connect Supervisely to B2 through its configurable S3-compatible storage paths, 
 - **Audience:** Computer vision data operations teams, AI data provider platform engineers, Enterprise annotation administrators
 - **Problem:** Work with large image and video collections in Supervisely while keeping durable source media, exports, and customer releases in independently governed object storage.
 - **Workflow:** Collect source images and video into a B2 raw-data prefix → Configure Supervisely remote storage or a team cloud connection with the regional B2 endpoint → Import existing media by reference when the selected Supervisely workflow supports remote links → Annotate, review, transform, or run Supervisely applications → Export approved datasets and reports into a B2 work prefix → Validate and publish an immutable release with its manifest written last → Deliver the release with customer-specific presigned URLs
-- **Expected scale:** Large image and video projects with interactive annotation, model-assisted processing, and repeated dataset export. Direct links avoid unnecessary source copies, while preview caches and interactive reads still require capacity and latency testing near Supervisely compute.
+- **Expected scale:** Large image and video projects with interactive annotation, model-assisted processing, and repeated dataset export. Direct links avoid unnecessary source copies; size preview caches near Supervisely compute for interactive reads.
 
 ## [Curate datasets and publish quality evidence with each release](../architectures/fiftyone-dataset-curation-pipeline/architecture.md)
 
@@ -47,7 +47,7 @@ Reference B2-backed media from FiftyOne Enterprise, curate and evaluate datasets
 
 - **Audience:** Machine learning data quality teams, Computer vision and multimodal engineers, AI data provider platform architects
 - **Problem:** Inspect, search, deduplicate, evaluate, and select large datasets without turning the curation platform database into the durable release system of record.
-- **Workflow:** Store source media and a stable inventory in a B2 raw-data prefix → Configure a custom-endpoint cloud credential path in FiftyOne Enterprise and test it against B2 → Create a FiftyOne dataset whose sample filepaths resolve to B2-backed media → Compute embeddings, similarity, quality, duplicate, and evaluation views on external compute → Export selected samples, labels, reports, and provenance into a B2 work prefix → Validate and publish an immutable curated release with its manifest written last → Deliver releases through presigned URLs or downstream compute access
+- **Workflow:** Store source media and a stable inventory in a B2 raw-data prefix → Configure a FiftyOne Enterprise MinIO cloud credential with the regional B2 endpoint → Create a FiftyOne dataset whose sample filepaths resolve to B2-backed media → Compute embeddings, similarity, quality, duplicate, and evaluation views on external compute → Export selected samples, labels, reports, and provenance into a B2 work prefix → Validate and publish an immutable curated release with its manifest written last → Deliver releases through presigned URLs or downstream compute access
 - **Expected scale:** Large computer-vision and multimodal datasets requiring interactive exploration, embeddings, quality analysis, and curated subset releases. Media remains object-backed, but databases, indexes, embeddings, previews, and frequently reused objects may need storage or caching close to FiftyOne compute.
 
 ## [Import to a training platform via presigned URLs and return approved exports](../architectures/roboflow-presigned-import-pipeline/architecture.md)
@@ -55,9 +55,9 @@ Reference B2-backed media from FiftyOne Enterprise, curate and evaluate datasets
 Select B2 objects, give Roboflow time-limited read URLs for API import, process the copied assets in Roboflow, and return approved exports to governed B2 releases.
 
 - **Audience:** Computer vision dataset teams, AI data provider integration engineers, Security and data governance architects
-- **Problem:** Move selected computer-vision assets through a managed processing platform without public buckets, permanent shared credentials, or an unsupported direct-B2 connector claim.
+- **Problem:** Move selected computer-vision assets through a managed processing platform without public buckets or permanent shared credentials.
 - **Workflow:** Store private source images and metadata in a B2 raw-data prefix → Select an import batch from a stable inventory or manifest → Generate short-lived B2 presigned GET URLs with a read-only key → Submit each URL to the Roboflow upload API and record the returned asset identity → Annotate, preprocess, augment, version, or train inside Roboflow → Export approved data and model-independent dataset artifacts back to a B2 work prefix → Validate and publish an immutable release with its manifest written last
-- **Expected scale:** Selected computer-vision batches imported into a managed platform for labeling, transformation, dataset versioning, or training. Presigned import is best for bounded or scripted transfers; large continuous synchronization should be evaluated separately because Roboflow's documented persistent datasource path is AWS-specific.
+- **Expected scale:** Selected computer-vision batches imported into a managed platform for labeling, transformation, dataset versioning, or training. Presigned import is best for bounded or scripted transfers; for large continuous synchronization, configure a Roboflow Datasource with the B2 endpoint and a read-only prefix-scoped key.
 
 ## Machine-readable source
 

@@ -1,15 +1,16 @@
 # B2 Reference Architectures for AI Data Providers
 
-> Designs, release contracts, and runnable examples for collecting, annotating, validating, publishing, and delivering AI datasets with Backblaze B2.
+> Reference architectures, release contracts, third-party integrations, and B2 sample applications for collecting, annotating, validating, publishing, and delivering AI datasets with Backblaze B2.
 
-Canonical Backblaze product documentation: https://www.backblaze.com/docs/cloud-storage-ai-machine-learning. Repository pages are maintained as clean Markdown; product documentation remains authoritative for changing service behavior. This community-convention file is a navigation aid, not an access-control policy or a search-ranking claim.
+Canonical Backblaze product documentation: https://www.backblaze.com/docs/cloud-storage-ai-machine-learning. Use this index to select an architecture, integration configuration, or sample application.
 
 ## Start here
 
 - [AI data provider summary](docs/ai-data-providers.md): Concise workload and capability overview.
 - [Architecture index](docs/architecture-index.md): Human-readable index generated from the catalog.
-- [Machine-readable catalog](catalog/architectures.yaml): Audiences, workflows, capabilities, evidence, security, compliance, and resource links.
+- [Machine-readable catalog](catalog/architectures.yaml): Audiences, workflows, capabilities, integrations, security, compliance, and resource links.
 - [Dataset release contract](docs/dataset-release-contract.md): Operational manifest, dataset card, Croissant metadata, and delivery manifest.
+- [Full text](llms-full.txt): Summary, every architecture, and the release contract in one file.
 
 ## Architectures
 
@@ -19,6 +20,40 @@ Canonical Backblaze product documentation: https://www.backblaze.com/docs/cloud-
 - [Transform and annotate remote media, then release immutable datasets](architectures/supervisely-annotation-pipeline/architecture.md): Connect Supervisely to B2 through its configurable S3-compatible storage paths, annotate or transform remote media, and publish immutable dataset releases.
 - [Curate datasets and publish quality evidence with each release](architectures/fiftyone-dataset-curation-pipeline/architecture.md): Reference B2-backed media from FiftyOne Enterprise, curate and evaluate datasets on compute, and publish selected samples, labels, and quality evidence as immutable releases.
 - [Import to a training platform via presigned URLs and return approved exports](architectures/roboflow-presigned-import-pipeline/architecture.md): Select B2 objects, give Roboflow time-limited read URLs for API import, process the copied assets in Roboflow, and return approved exports to governed B2 releases.
+
+## Third-party integrations
+
+- [CVAT](https://docs.cvat.ai/docs/workspace/attach-cloud-storage/): S3 custom endpoint. Add cloud storage with provider Amazon S3, the bucket name, a bucket-scoped B2 application key, and Endpoint URL https://s3.<region>.backblazeb2.com ([setup guide](https://docs.cvat.ai/docs/workspace/attach-cloud-storage/#backblaze-b2)). Architecture: architectures/cvat-annotation-pipeline/architecture.md
+- [Label Studio](https://labelstud.io/guide/storage_s3): S3 custom endpoint. Amazon S3 source and target storage with S3 Endpoint https://s3.<region>.backblazeb2.com and Region Name set to the bucket region; enable presigned URLs with CORS for direct browser reads, or proxy media through Label Studio. Architecture: architectures/label-studio-annotation-pipeline/architecture.md
+- [Dataloop DDOE](https://docs.dataloop.ai/docs/s3-api): S3 custom endpoint. Storage integration with provider On-Prem and type S3 API, Endpoint URL https://s3.<region>.backblazeb2.com, Region set to the bucket region, and a prefix-scoped B2 application key. Architecture: architectures/dataloop-direct-data-pipeline/architecture.md
+- [Supervisely](https://docs.supervisely.com/enterprise-edition/advanced-tuning/s3): S3 custom endpoint. STORAGE_PROVIDER=minio with STORAGE_ENDPOINT=s3.<region>.backblazeb2.com and STORAGE_PORT=443 for instance storage, or a minio provider entry with the same endpoint and bucket region for remote links and team cloud storage. Architecture: architectures/supervisely-annotation-pipeline/architecture.md
+- [FiftyOne Enterprise](https://docs.voxel51.com/enterprise/installation.html): S3 custom endpoint. MinIO cloud credential profile with endpoint_url https://s3.<region>.backblazeb2.com, the bucket region, and a read-only B2 application key; reference media as <alias>://<bucket>/<key> ([setup guide](https://docs.voxel51.com/enterprise/installation.html#enterprise-cloud-credentials)). Architecture: architectures/fiftyone-dataset-curation-pipeline/architecture.md
+- [Roboflow](https://docs.roboflow.com/datasets/create-and-upload/adding-data/upload-data-from-aws-gcp-and-azure/aws-s3-bucket): Presigned URLs. Submit short-lived B2 presigned GET URLs to the Roboflow upload API for bounded batches; for continuous sync, Roboflow Datasources list Backblaze B2 as an S3-compatible provider (endpoint s3.<region>.backblazeb2.com, path-style off) ([setup guide](https://docs.roboflow.com/datasets/create-and-upload/adding-data/datasources)). Architecture: architectures/roboflow-presigned-import-pipeline/architecture.md
+
+## Sample applications: closest workflow matches
+
+- [SAM 2 Mask Dataset Builder](https://github.com/backblaze-b2-samples/sam2-mask-dataset-builder): Versioned COCO segmentation masks and derived artifacts from B2-backed images and video.
+- [MMAction2 Action Dataset Builder](https://github.com/backblaze-b2-samples/mmaction2-action-dataset-builder): Video segmentation, automated labeling, train/validation/test splits, and versioned releases.
+- [NeMo Curator Training Data](https://github.com/backblaze-b2-samples/nemo-curator-training-data): Deduplication, quality filtering, PII redaction, lineage, and versioned JSONL stages.
+- [DataComp Image-Text Filtering](https://github.com/backblaze-b2-samples/datacomp-image-text-filtering): CLIP scoring, baseline filters, duplicate removal, quality metrics, and filtered WebDataset shards.
+- [Supervision Sports Highlights](https://github.com/backblaze-b2-samples/supervision-sports-highlights): Roboflow Inference, tracking, annotation, stage manifests, and presigned media delivery.
+- [img2dataset WebDataset Object Storage](https://github.com/backblaze-b2-samples/img2dataset-webdataset-object-storage): Large-batch image-text collection, validation, and reproducible WebDataset packaging.
+- [WebDataset Streaming PyTorch Training](https://github.com/backblaze-b2-samples/webdataset-streaming-pytorch-training): Manifested shards streamed directly from B2 into distributed PyTorch training.
+- [DuckDB Query-in-Place](https://github.com/backblaze-b2-samples/duckdb-query-in-place): Validation and analysis of Parquet, CSV, and JSON in B2 with materialized output slices.
+
+## Sample applications: operational building blocks
+
+- [B2 Event Broker](https://github.com/backblaze-b2-samples/b2-event-broker): Signed event validation, prompt acknowledgement, subscriber fan-out, and retries.
+- [B2 Browser Upload](https://github.com/backblaze-b2-samples/b2-browser-upload): Direct browser ingest with presigned S3 uploads, server-held credentials, and CORS.
+- [B2 AI and data notebooks](https://github.com/backblaze-b2-samples/notebooks): PyTorch, Ray Train/Tune, and Whisper notebooks reading B2-backed data.
+
+## Sample applications: domain-specific candidates
+
+- [CARLA Sensor Data Lake](https://github.com/backblaze-b2-samples/carla-sensor-data-lake): Synthetic autonomous-driving sensor capture and streaming.
+- [ROS 2 rosbag2 Cloud Offload](https://github.com/backblaze-b2-samples/rosbag2-cloud-offload): Robotics recording upload, Parquet cataloging, search, and presigned replay.
+- [KISS-ICP LiDAR Archive](https://github.com/backblaze-b2-samples/kiss-icp-lidar-archive): LiDAR scan ingest, odometry, maps, poses, and trajectories.
+- [TotalSegmentator Batch Pipeline](https://github.com/backblaze-b2-samples/totalsegmentator-batch-pipeline): Medical-volume ingest, anatomical segmentation masks, and volumetric statistics.
+- [MuJoCo Rollout Dataset](https://github.com/backblaze-b2-samples/mujoco-rollout-dataset): Reinforcement-learning video, state, action, reward, and summary datasets.
 
 ## Contracts and schemas
 
@@ -33,13 +68,21 @@ Canonical Backblaze product documentation: https://www.backblaze.com/docs/cloud-
 - [CVAT B2 dataset pipeline](applications/cvat-b2-dataset-pipeline/README.md): Runnable synthetic release pipeline.
 - [CVAT storage attachment](infrastructure/cvat/README.md): API helper for attaching B2 to CVAT.
 - [B2 configuration examples](examples/README.md): Lifecycle, CORS, encryption, Object Lock, notifications, replication, and keys.
-- [Related B2 sample applications](docs/related-b2-samples.md): Curated collection, annotation, curation, packaging, training, query, upload, and event examples from the Backblaze sample organization.
+- [Related B2 sample applications](docs/related-b2-samples.md): Sample-to-architecture mapping and selection guidance.
 
 ## Official product documentation
 
 - [Backblaze AI and machine learning](https://www.backblaze.com/docs/cloud-storage-ai-machine-learning): Canonical B2 documentation hub.
 - [Backblaze B2 documentation](https://www.backblaze.com/docs/cloud-storage): Current product behavior and setup.
 - [Backblaze B2 pricing](https://www.backblaze.com/cloud-storage/pricing): Current pricing and egress terms.
+
+## Other B2 reference architecture categories
+
+- [Generative Video](https://github.com/backblaze-b2-samples/b2-gen-video-reference-architectures)
+- [Image Generation](https://github.com/backblaze-b2-samples/b2-image-generation-reference-architectures)
+- [Robotics](https://github.com/backblaze-b2-samples/b2-robotics-reference-architectures)
+- [Autonomous Vehicles](https://github.com/backblaze-b2-samples/b2-autonomous-vehicle-reference-architectures)
+- [Commercial Drones](https://github.com/backblaze-b2-samples/b2-commercial-drone-reference-architectures)
 
 ## Optional
 

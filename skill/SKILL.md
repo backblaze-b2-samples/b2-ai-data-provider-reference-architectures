@@ -5,7 +5,7 @@ description: Design or review Backblaze B2 storage for AI data providers, includ
 
 # B2 for AI data providers
 
-Choose a workflow from the bundled [architecture catalog](references/architecture-catalog.md). For release manifests, dataset cards, Croissant metadata, and delivery bundles, read [release contract](references/release-contract.md).
+Choose a workflow from the bundled [architecture catalog](references/architecture-catalog.md), which also lists related B2 sample applications. For release manifests, dataset cards, Croissant metadata, and delivery bundles, read [release contract](references/release-contract.md).
 
 For changing service behavior, limits, and setup steps, use the canonical [Backblaze B2 documentation](https://www.backblaze.com/docs/cloud-storage). Link pricing claims to [B2 pricing](https://www.backblaze.com/cloud-storage/pricing) instead of copying numbers.
 
@@ -20,12 +20,11 @@ For changing service behavior, limits, and setup steps, use the canonical [Backb
 - Link to B2 pricing; do not restate numbers.
 - CVAT: provider Amazon S3 + Endpoint URL. Keep CVAT's databases and UI caching off B2.
 - Label Studio: Amazon S3 source and target storage + S3 Endpoint. Choose presigned browser reads with narrow CORS or proxy delivery through Label Studio; keep its database and queues off B2.
-- Dataloop DDOE: use the generic S3 API connector with the regional B2 endpoint and test the exact deployed release; separate read-only source data from writable platform derivatives.
-- Supervisely: distinguish instance-wide remote storage from team imports and remote links; configure the documented S3-compatible endpoint and verify whether the selected flow links or copies objects.
-- FiftyOne Enterprise: treat the MinIO-compatible custom endpoint as a B2 candidate until media addressing, credentials, range reads, and App/SDK behavior pass acceptance tests; do not store expiring URLs as durable sample paths.
-- Roboflow: use bounded presigned-URL API imports for B2. Treat imported objects as copies across a processor boundary and do not claim that the AWS-specific Bucket Mirror is a direct B2 connector.
+- Dataloop DDOE: configure the On-Prem S3 API integration with the regional B2 endpoint and bucket region; separate read-only source data from writable platform derivatives.
+- Supervisely: distinguish instance-wide remote storage from team imports and remote links; configure the `minio` provider with endpoint `s3.<region>.backblazeb2.com` and record whether the selected flow links or copies objects.
+- FiftyOne Enterprise: configure the MinIO cloud credential profile with `endpoint_url=https://s3.<region>.backblazeb2.com` and the bucket region; use one canonical media path form across App, SDK, and operators; do not store expiring URLs as durable sample paths.
+- Roboflow: use presigned-URL API imports for bounded batches, or a Roboflow Datasource configured with the B2 endpoint (path-style off) for continuous sync. Treat imported objects as copies across a processor boundary.
 - Overdrive only for sustained high-throughput reads; otherwise Standard B2.
-- State whether a recommendation is based on product documentation, source review, automated tests, or a deployment-specific measurement. Do not turn documentation review into a production-result claim.
 
 ## Release contract
 
@@ -36,4 +35,4 @@ For changing service behavior, limits, and setup steps, use the canonical [Backb
 
 ## Verify
 
-When operating inside the full repository, use its `AGENTS.md` validation commands. When this skill is installed by itself, validate recommendations against the linked canonical product and integration documentation; repository-local tests are not bundled with the portable skill.
+When operating inside the full repository, use its `AGENTS.md` validation commands. When this skill is installed by itself, use the linked product and integration documentation for configuration and service behavior.
